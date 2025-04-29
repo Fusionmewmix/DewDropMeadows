@@ -1,1 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bubble Animation (Transparent Bubbles with Stroke)</title>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.js"></script>
+  <style>
+    body { margin: 0; background-color: navy; overflow: hidden; }
+    canvas { display: block; margin: auto; }
+  </style>
+</head>
+<body>
+<script>
+const config = {
+  type: Phaser.AUTO,
+  width: 1920,
+  height: 1080,
+  backgroundColor: 0x000080,
+  scene: {
+    preload,
+    create,
+    update
+  },
+  scale: {
+    mode: Phaser.Scale.NONE,
+    autoCenter: Phaser.Scale.CENTER_BOTH
+  }
+};
+
+let bubble;
+let backgroundBubbles = [];
+let swayTime = 0;
+const maxBubbles = 15;
+
+const game = new Phaser.Game(config);
+
+function preload() {
+  // Load the sprite from the subfolder "Main Menu" inside the "assets" folder
+  this.load.spritesheet('Bubble_Sheet', 'assets/Main Menu/Bubble_Sheet.png', {
+    frameWidth: 1920,
+    frameHeight: 1080
+  });
+}
+
+function create() {
+  const correctFrameOrder = [
+    0, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2
+  ];
+
+  this.anims.create({
+    key: 'bubbleFloat',
+    frames: correctFrameOrder.map(i => ({ key: 'Bubble_Sheet', frame: i })),
+    frameRate: 3,
+    repeat: -1
+  });
+
+  bubble = this.add.sprite(960, 540, 'Bubble_Sheet').play('bubbleFloat');
+
+  // Create transparent background bubbles with only a translucent outline
+  for (let i = 0; i < maxBubbles; i++) {
+    const graphics = this.add.graphics();
+    graphics.lineStyle(4, 0xFFFFFF, 0.3); // White outline, 30% opacity
+    graphics.strokeCircle(0, 0, Phaser.Math.Between(5, 15)); // Draw a circle
+
+    const bubbleSprite = this.add.container(
+      Phaser.Math.Between(0, 1920),
+      Phaser.Math.Between(1080, 2000),
+      [graphics]
+    );
+
+    bubbleSprite.radius = graphics.defaultStrokeWidth;
+    bubbleSprite.speed = Phaser.Math.FloatBetween(0.2, 0.5);
+    backgroundBubbles.push(bubbleSprite);
+  }
+}
+
+function update(time, delta) {
+  swayTime += delta * 0.0005;
+
+  // Big bubble sway
+  bubble.x = 960 + Math.sin(swayTime) * 30;
+
+  // Big bubble breathing zoom
+  const scale = 1 + Math.sin(swayTime * 1.5) * 0.01;
+  bubble.setScale(scale);
+
+  // Move small background bubbles upward
+  backgroundBubbles.forEach(b => {
+    b.y -= b.speed;
+    if (b.y < -50) {
+      // Reset bubble to bottom when it goes off top
+      b.x = Phaser.Math.Between(0, 1920);
+      b.y = Phaser.Math.Between(1100, 1500);
+    }
+  });
+}
+</script>
+</body>
+</html>
 
