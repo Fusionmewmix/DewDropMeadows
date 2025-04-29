@@ -35,8 +35,8 @@ const maxBubbles = 15;
 const game = new Phaser.Game(config);
 
 function preload() {
-  // Load the sprite from the subfolder "Main Menu" inside the "assets" folder
-  this.load.spritesheet('Bubble_Sheet', 'assets/Main Menu/Bubble_Sheet.png', {
+  // Use %20 to handle the space in folder name "Main Menu"
+  this.load.spritesheet('Bubble_Sheet', 'assets/Main%20Menu/Bubble_Sheet.png', {
     frameWidth: 1920,
     frameHeight: 1080
   });
@@ -97,4 +97,3 @@ function update(time, delta) {
 </script>
 </body>
 </html>
-
