@@ -1,26 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Dewdrop Meadows - Main Menu</title>
-  <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.js"></script>
-  <style>
-    body { margin: 0; background-color: navy; overflow: hidden; }
-    canvas { display: block; margin: auto; }
-  </style>
-</head>
-<body>
 <script>
 const config = {
   type: Phaser.AUTO,
   width: 1920,
   height: 1080,
   backgroundColor: 0x000080,
-  scene: {
-    preload,
-    create,
-    update
-  },
+  scene: { preload, create, update },
   scale: {
     mode: Phaser.Scale.NONE,
     autoCenter: Phaser.Scale.CENTER_BOTH
@@ -35,13 +19,11 @@ const maxBubbles = 15;
 const game = new Phaser.Game(config);
 
 function preload() {
-  // Load bubble animation
   this.load.spritesheet('Bubble_Sheet', 'Assets/Main%20Menu/Bubble_Sheet.png', {
     frameWidth: 1920,
     frameHeight: 1080
   });
 
-  // Load UI assets
   this.load.image('MM_Background', 'Assets/Main%20Menu/MM_Background.png');
   this.load.image('DDM_Logo', 'Assets/Main%20Menu/DDM_Logo.png');
   this.load.image('Start_Button', 'Assets/Main%20Menu/Start_Button.png');
@@ -50,10 +32,8 @@ function preload() {
 }
 
 function create() {
-  // Background image
   this.add.image(960, 540, 'MM_Background').setDepth(-2);
 
-  // Bubble animation
   const correctFrameOrder = [0, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2];
   this.anims.create({
     key: 'bubbleFloat',
@@ -63,43 +43,45 @@ function create() {
   });
   bubble = this.add.sprite(960, 540, 'Bubble_Sheet').play('bubbleFloat').setDepth(-1);
 
-  // Floating background bubbles
   for (let i = 0; i < maxBubbles; i++) {
     const graphics = this.add.graphics();
     graphics.lineStyle(4, 0xFFFFFF, 0.3);
     graphics.strokeCircle(0, 0, Phaser.Math.Between(5, 15));
-
     const bubbleSprite = this.add.container(
       Phaser.Math.Between(0, 1920),
       Phaser.Math.Between(1080, 2000),
       [graphics]
     );
     bubbleSprite.radius = graphics.defaultStrokeWidth;
-    bubbleSprite.speed = Phaser.Math.FloatBetween(0.2, 0.5);
+    bubbleSprite.speed = Phaser.Math.FloatBetween(0.8, 1.4); // ✅ More visible speed
     bubbleSprite.setDepth(-1);
     backgroundBubbles.push(bubbleSprite);
   }
 
-  // Logo
   this.add.image(960, 250, 'DDM_Logo').setScale(1).setDepth(1);
 
-  // Start Button
-  const startButton = this.add.image(960, 500, 'Start_Button').setInteractive().setDepth(1);
+  // Button layout — adjusted vertical spacing
+  const startY = 500;
+  const buttonSpacing = 120;
+
+  const startButton = this.add.image(960, startY, 'Start_Button').setInteractive().setDepth(1);
+  const quitButton = this.add.image(960, startY + buttonSpacing, 'Quit_Button').setInteractive().setDepth(1);
+  const settingsButton = this.add.image(960, startY + buttonSpacing * 2.1, 'Settings_Button')
+    .setInteractive().setScale(0.5).setDepth(1);
+
+  // Start
   startButton.on('pointerover', () => startButton.setScale(1.05));
   startButton.on('pointerout', () => startButton.setScale(1));
   startButton.on('pointerdown', () => startButton.setTint(0xcccccc));
   startButton.on('pointerup', () => startButton.clearTint());
 
-  // Quit Button
-  const quitButton = this.add.image(960, 600, 'Quit_Button').setInteractive().setDepth(1);
+  // Quit
   quitButton.on('pointerover', () => quitButton.setScale(1.05));
   quitButton.on('pointerout', () => quitButton.setScale(1));
   quitButton.on('pointerdown', () => quitButton.setTint(0xcccccc));
   quitButton.on('pointerup', () => quitButton.clearTint());
 
-  // Settings Button (Gear)
-  const settingsButton = this.add.image(960, 700, 'Settings_Button').setInteractive().setDepth(1);
-  settingsButton.setScale(0.5);
+  // Settings
   settingsButton.on('pointerover', () => settingsButton.setScale(0.55));
   settingsButton.on('pointerout', () => settingsButton.setScale(0.5));
   settingsButton.on('pointerdown', () => settingsButton.setTint(0xcccccc));
@@ -120,5 +102,3 @@ function update(time, delta) {
   });
 }
 </script>
-</body>
-</html>
