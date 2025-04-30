@@ -17,7 +17,6 @@ class MainMenu extends Phaser.Scene {
   }
 
   preload() {
-    // Assets
     this.load.image('MM_Background', 'Assets/Main%20Menu/MM_Background.png');
     this.load.image('DDM_Logo', 'Assets/Main%20Menu/DDM_Logo.png');
     this.load.image('Start_Button', 'Assets/Main%20Menu/Start_Button.png');
@@ -28,31 +27,59 @@ class MainMenu extends Phaser.Scene {
     this.load.image('Sound_Toggle', 'Assets/Main%20Menu/Sound_Toggle.png');
     this.load.image('Settings_Close', 'Assets/Main%20Menu/Settings_Close.png');
     this.load.audio('Water_Sound', 'Assets/Main%20Menu/Water_Sound.mp3');
+    this.load.spritesheet('Bubble_Sheet', 'Assets/Main%20Menu/Bubble_Sheet.png', {
+      frameWidth: 1920,
+      frameHeight: 1080
+    });
   }
 
   create() {
-    // Background & Audio
-    this.add.image(960, 540, 'MM_Background');
+    // Background
+    this.add.image(960, 540, 'MM_Background').setDepth(-3);
+
+    // Looping background music
     this.music = this.sound.add('Water_Sound', { loop: true, volume: 1 });
     this.music.play();
 
-    // Logo
-    this.add.image(960, 250, 'DDM_Logo');
+    // Animated water bubble sheet
+    const correctFrameOrder = [0, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2];
+    this.anims.create({
+      key: 'bubbleFloat',
+      frames: correctFrameOrder.map(i => ({ key: 'Bubble_Sheet', frame: i })),
+      frameRate: 3,
+      repeat: -1
+    });
+    this.bubble = this.add.sprite(960, 540, 'Bubble_Sheet').play('bubbleFloat').setDepth(-2);
 
-    // Buttons
-    const startButton = this.add.image(960, 500, 'Start_Button').setInteractive();
-    const quitButton = this.add.image(960, 620, 'Quit_Button').setInteractive();
-    const settingsButton = this.add.image(960, 740, 'Settings_Button').setInteractive().setScale(0.5);
+    // Background bubbles
+    this.backgroundBubbles = [];
+    for (let i = 0; i < 15; i++) {
+      const g = this.add.graphics();
+      g.lineStyle(4, 0xFFFFFF, 0.3);
+      g.strokeCircle(0, 0, Phaser.Math.Between(5, 15));
+      const container = this.add.container(Phaser.Math.Between(0, 1920), Phaser.Math.Between(1080, 2000), [g]);
+      container.speed = Phaser.Math.FloatBetween(0.8, 1.4);
+      container.setDepth(-1);
+      this.backgroundBubbles.push(container);
+    }
+
+    // Logo
+    this.add.image(960, 250, 'DDM_Logo').setDepth(1);
+
+    // Main buttons
+    const startButton = this.add.image(960, 500, 'Start_Button').setInteractive().setDepth(1);
+    const quitButton = this.add.image(960, 620, 'Quit_Button').setInteractive().setDepth(1);
+    const settingsButton = this.add.image(960, 740, 'Settings_Button').setInteractive().setScale(0.5).setDepth(1);
 
     startButton.on('pointerup', () => this.scene.start('NextScene'));
     quitButton.on('pointerup', () => window.close());
     settingsButton.on('pointerup', () => this.showSettings());
 
-    // Vignette overlay
-    const vignette = this.add.graphics();
-    vignette.fillStyle(0x0b5e6e, 0.4); // more visible
+    // Enhanced vignette
+    const vignette = this.add.graphics().setDepth(0);
+    vignette.fillStyle(0x064c5c, 0.4); // darker, deeper
     vignette.fillRect(0, 0, 1920, 1080);
-    this.tweens.add({ targets: vignette, alpha: { from: 0.3, to: 0.5 }, duration: 4000, yoyo: true, repeat: -1 });
+    this.tweens.add({ targets: vignette, alpha: { from: 0.2, to: 0.4 }, duration: 4000, yoyo: true, repeat: -1 });
   }
 
   showSettings() {
@@ -77,6 +104,19 @@ class MainMenu extends Phaser.Scene {
 
     close.on('pointerup', () => {
       bg.destroy(); bar.destroy(); toggle.destroy(); close.destroy(); text.destroy();
+    });
+  }
+
+  update(_, delta) {
+    this.bubble.x = 960 + Math.sin(this.time.now * 0.001) * 30;
+    this.bubble.setScale(1 + Math.sin(this.time.now * 0.0015) * 0.01);
+
+    this.backgroundBubbles.forEach(b => {
+      b.y -= b.speed;
+      if (b.y < -50) {
+        b.x = Phaser.Math.Between(0, 1920);
+        b.y = Phaser.Math.Between(1100, 1500);
+      }
     });
   }
 }
