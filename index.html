@@ -11,108 +11,113 @@
 </head>
 <body>
 <script>
+class MainMenu extends Phaser.Scene {
+  constructor() {
+    super('MainMenu');
+  }
+
+  preload() {
+    this.load.spritesheet('Bubble_Sheet', 'Assets/Main%20Menu/Bubble_Sheet.png', {
+      frameWidth: 1920,
+      frameHeight: 1080
+    });
+    this.load.image('MM_Background', 'Assets/Main%20Menu/MM_Background.png');
+    this.load.image('DDM_Logo', 'Assets/Main%20Menu/DDM_Logo.png');
+    this.load.image('Start_Button', 'Assets/Main%20Menu/Start_Button.png');
+    this.load.image('Quit_Button', 'Assets/Main%20Menu/Quit_Button.png');
+    this.load.image('Settings_Button', 'Assets/Main%20Menu/Settings_Button.png');
+  }
+
+  create() {
+    this.add.image(960, 540, 'MM_Background').setDepth(-3);
+
+    const correctFrameOrder = [0, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2];
+    this.anims.create({
+      key: 'bubbleFloat',
+      frames: correctFrameOrder.map(i => ({ key: 'Bubble_Sheet', frame: i })),
+      frameRate: 3,
+      repeat: -1
+    });
+    this.bubble = this.add.sprite(960, 540, 'Bubble_Sheet').play('bubbleFloat').setDepth(-2);
+
+    this.backgroundBubbles = [];
+    for (let i = 0; i < 15; i++) {
+      const g = this.add.graphics();
+      g.lineStyle(4, 0xFFFFFF, 0.3);
+      g.strokeCircle(0, 0, Phaser.Math.Between(5, 15));
+      const container = this.add.container(Phaser.Math.Between(0, 1920), Phaser.Math.Between(1080, 2000), [g]);
+      container.speed = Phaser.Math.FloatBetween(0.8, 1.4);
+      container.setDepth(-1);
+      this.backgroundBubbles.push(container);
+    }
+
+    this.add.image(960, 250, 'DDM_Logo').setDepth(1);
+
+    const startY = 500;
+    const spacing = 120;
+
+    const start = this.add.image(960, startY, 'Start_Button').setInteractive().setDepth(1);
+    const quit = this.add.image(960, startY + spacing, 'Quit_Button').setInteractive().setDepth(1);
+    const gear = this.add.image(960, startY + spacing * 2.1, 'Settings_Button').setInteractive().setScale(0.5).setDepth(1);
+
+    [start, quit, gear].forEach(btn => {
+      btn.on('pointerover', () => btn.setScale(btn.scale + 0.05));
+      btn.on('pointerout', () => btn.setScale(btn.texture.key === 'Settings_Button' ? 0.5 : 1));
+      btn.on('pointerdown', () => btn.setTint(0xcccccc));
+      btn.on('pointerup', () => btn.clearTint());
+    });
+
+    start.on('pointerup', () => this.scene.start('NextScene'));
+    quit.on('pointerup', () => window.close());
+
+    // ✅ Vignette overlay using fillRect + alpha tween
+    const vignette = this.add.graphics().setDepth(5);
+    vignette.fillStyle(0x0b5e6e, 0.2); // Match teal color + opacity
+    vignette.fillRect(0, 0, 1920, 1080);
+
+    this.tweens.add({
+      targets: vignette,
+      alpha: { from: 0.15, to: 0.25 },
+      duration: 3000,
+      yoyo: true,
+      repeat: -1
+    });
+  }
+
+  update(_, delta) {
+    this.bubble.x = 960 + Math.sin(this.time.now * 0.001) * 30;
+    this.bubble.setScale(1 + Math.sin(this.time.now * 0.0015) * 0.01);
+
+    this.backgroundBubbles.forEach(b => {
+      b.y -= b.speed;
+      if (b.y < -50) {
+        b.x = Phaser.Math.Between(0, 1920);
+        b.y = Phaser.Math.Between(1100, 1500);
+      }
+    });
+  }
+}
+
+class NextScene extends Phaser.Scene {
+  constructor() { super('NextScene'); }
+  create() {
+    this.add.text(700, 500, 'Game Scene Loaded', { fontSize: '48px', fill: '#fff' });
+  }
+}
+
 const config = {
   type: Phaser.AUTO,
   width: 1920,
   height: 1080,
-  backgroundColor: 0x000080,
-  scene: { preload, create, update },
+  backgroundColor: '#000022',
+  scene: [MainMenu, NextScene],
   scale: {
     mode: Phaser.Scale.NONE,
     autoCenter: Phaser.Scale.CENTER_BOTH
   }
 };
 
-let bubble;
-let backgroundBubbles = [];
-let swayTime = 0;
-const maxBubbles = 15;
-
-const game = new Phaser.Game(config);
-
-function preload() {
-  this.load.spritesheet('Bubble_Sheet', 'Assets/Main%20Menu/Bubble_Sheet.png', {
-    frameWidth: 1920,
-    frameHeight: 1080
-  });
-
-  this.load.image('MM_Background', 'Assets/Main%20Menu/MM_Background.png');
-  this.load.image('DDM_Logo', 'Assets/Main%20Menu/DDM_Logo.png');
-  this.load.image('Start_Button', 'Assets/Main%20Menu/Start_Button.png');
-  this.load.image('Quit_Button', 'Assets/Main%20Menu/Quit_Button.png');
-  this.load.image('Settings_Button', 'Assets/Main%20Menu/Settings_Button.png');
-}
-
-function create() {
-  this.add.image(960, 540, 'MM_Background').setDepth(-2);
-
-  const correctFrameOrder = [0, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2];
-  this.anims.create({
-    key: 'bubbleFloat',
-    frames: correctFrameOrder.map(i => ({ key: 'Bubble_Sheet', frame: i })),
-    frameRate: 3,
-    repeat: -1
-  });
-  bubble = this.add.sprite(960, 540, 'Bubble_Sheet').play('bubbleFloat').setDepth(-1);
-
-  for (let i = 0; i < maxBubbles; i++) {
-    const graphics = this.add.graphics();
-    graphics.lineStyle(4, 0xFFFFFF, 0.3);
-    graphics.strokeCircle(0, 0, Phaser.Math.Between(5, 15));
-    const bubbleSprite = this.add.container(
-      Phaser.Math.Between(0, 1920),
-      Phaser.Math.Between(1080, 2000),
-      [graphics]
-    );
-    bubbleSprite.radius = graphics.defaultStrokeWidth;
-    bubbleSprite.speed = Phaser.Math.FloatBetween(0.8, 1.4); // ✅ More visible speed
-    bubbleSprite.setDepth(-1);
-    backgroundBubbles.push(bubbleSprite);
-  }
-
-  this.add.image(960, 250, 'DDM_Logo').setScale(1).setDepth(1);
-
-  // Button layout — adjusted vertical spacing
-  const startY = 500;
-  const buttonSpacing = 120;
-
-  const startButton = this.add.image(960, startY, 'Start_Button').setInteractive().setDepth(1);
-  const quitButton = this.add.image(960, startY + buttonSpacing, 'Quit_Button').setInteractive().setDepth(1);
-  const settingsButton = this.add.image(960, startY + buttonSpacing * 2.1, 'Settings_Button')
-    .setInteractive().setScale(0.5).setDepth(1);
-
-  // Start
-  startButton.on('pointerover', () => startButton.setScale(1.05));
-  startButton.on('pointerout', () => startButton.setScale(1));
-  startButton.on('pointerdown', () => startButton.setTint(0xcccccc));
-  startButton.on('pointerup', () => startButton.clearTint());
-
-  // Quit
-  quitButton.on('pointerover', () => quitButton.setScale(1.05));
-  quitButton.on('pointerout', () => quitButton.setScale(1));
-  quitButton.on('pointerdown', () => quitButton.setTint(0xcccccc));
-  quitButton.on('pointerup', () => quitButton.clearTint());
-
-  // Settings
-  settingsButton.on('pointerover', () => settingsButton.setScale(0.55));
-  settingsButton.on('pointerout', () => settingsButton.setScale(0.5));
-  settingsButton.on('pointerdown', () => settingsButton.setTint(0xcccccc));
-  settingsButton.on('pointerup', () => settingsButton.clearTint());
-}
-
-function update(time, delta) {
-  swayTime += delta * 0.0005;
-  bubble.x = 960 + Math.sin(swayTime) * 30;
-  bubble.setScale(1 + Math.sin(swayTime * 1.5) * 0.01);
-
-  backgroundBubbles.forEach(b => {
-    b.y -= b.speed;
-    if (b.y < -50) {
-      b.x = Phaser.Math.Between(0, 1920);
-      b.y = Phaser.Math.Between(1100, 1500);
-    }
-  });
-}
+new Phaser.Game(config);
 </script>
 </body>
 </html>
