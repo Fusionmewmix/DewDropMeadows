@@ -140,18 +140,17 @@ class NextScene extends Phaser.Scene {
   create() {
     this.add.image(0, 0, 'PG_Background').setOrigin(0).setDisplaySize(this.sys.game.config.width, this.sys.game.config.height);
 
-   const book = this.add.image(30, 1050, 'PG_Fish_Book')
-  .setOrigin(0, 1)
-  .setScale(0.85)
-  .setInteractive()
-  .setDepth(2);
+    const book = this.add.image(30, this.cameras.main.height - 30, 'PG_Fish_Book')
+      .setOrigin(0, 1)
+      .setScale(0.28)
+      .setInteractive()
+      .setDepth(2);
+    const cart = this.add.image(book.x + 100, this.cameras.main.height - 30, 'PG_Shopping_Cart')
+      .setOrigin(0, 1)
+      .setScale(0.28)
+      .setInteractive()
+      .setDepth(2);
 
-const cart = this.add.image(book.x + 100, 1050, 'PG_Shopping_Cart')
-  .setOrigin(0, 1)
-  .setScale(0.85)
-  .setInteractive()
-  .setDepth(2);
-    
     [book, cart].forEach(icon => {
       icon.on('pointerover', () => icon.setScale(1.05));
       icon.on('pointerout', () => icon.setScale(1));
