@@ -81,10 +81,11 @@ class FishingSystem {
 }
 
   roll(score) {
-    let rng = Phaser.Math.Between(0, 100) + score * 5;
-    if (rng > 95) return { type: 'fish3' };
-    if (rng > 70) return { type: 'fish2' };
-    if (rng > 40) return { type: 'fish1' };
+    let rng = Phaser.Math.Between(0, 40) + score * 3;
+    if (rng > 70) return { type: 'fish3' };
+    if (rng > 50) return { type: 'fish2' };
+    if (rng > 20) return { type: 'fish1' };
+    if score == 0 return { type: 'rock' };
     return { type: 'rock' };
   }
 
@@ -268,10 +269,6 @@ class NextScene extends Phaser.Scene {
     const cx = this.cameras.main.centerX;
     const cy = this.cameras.main.centerY;
     this.bgGroup = this.add.group();
-    this.trees = this.add.image(cx, cy, 'BG2').setDepth(2);
-    this.foilage = this.add.image(cx, cy, 'BG6').setDepth(6);
-    this.clouds = this.add.image(cx, cy - 100, 'BG5').setDepth(5);
-
 
 const bgNames = ['BG1', 'BG2', 'BG3', 'BG4', 'BG5', 'BG6', 'BG7', 'BG8'];
 bgNames.forEach((name, i) => {
