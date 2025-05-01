@@ -281,5 +281,14 @@ const config = {
 
 new Phaser.Game(config);
 </script>
+<script type="module">
+  import { FishingSystem } from './FishingSystem.js';
+
+  let fishing;
+
+  window.onload = () => {
+    fishing = new FishingSystem(yourPhaserSceneInstance); // replace with actual scene
+  };
+</script>
 </body>
 </html>
