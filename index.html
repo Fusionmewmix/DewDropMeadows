@@ -26,6 +26,9 @@ class MainMenu extends Phaser.Scene {
     this.load.image('Sound_Bar', 'Assets/Main%20Menu/Sound_Bar.png');
     this.load.image('Sound_Toggle', 'Assets/Main%20Menu/Sound_Toggle.png');
     this.load.image('Settings_Close', 'Assets/Main%20Menu/Settings_Close.png');
+    this.load.image('PG_Background', 'Assets/Game%20Scene/PG_Background.png');
+    this.load.image('PG_Fish_Book', 'Assets/Game%20Scene/PG_Fish_Book.png');
+    this.load.image('PG_Shopping_Cart', 'Assets/Game%20Scene/PG_Shopping_Cart.png');
     this.load.audio('Water_Sound', 'Assets/Main%20Menu/Water_Sound.mp3');
     this.load.spritesheet('Bubble_Sheet', 'Assets/Main%20Menu/Bubble_Sheet.png', {
       frameWidth: 1920,
@@ -34,14 +37,10 @@ class MainMenu extends Phaser.Scene {
   }
 
   create() {
-    // Background
     this.add.image(960, 540, 'MM_Background').setDepth(-3);
-
-    // Looping background music
     this.music = this.sound.add('Water_Sound', { loop: true, volume: 1 });
     this.music.play();
 
-    // Animated water bubble sheet
     const correctFrameOrder = [0, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2];
     this.anims.create({
       key: 'bubbleFloat',
@@ -51,7 +50,6 @@ class MainMenu extends Phaser.Scene {
     });
     this.bubble = this.add.sprite(960, 540, 'Bubble_Sheet').play('bubbleFloat').setDepth(-2);
 
-    // Background bubbles
     this.backgroundBubbles = [];
     for (let i = 0; i < 15; i++) {
       const g = this.add.graphics();
@@ -63,21 +61,35 @@ class MainMenu extends Phaser.Scene {
       this.backgroundBubbles.push(container);
     }
 
-    // Logo
     this.add.image(960, 250, 'DDM_Logo').setDepth(1);
 
-    // Main buttons
     const startButton = this.add.image(960, 500, 'Start_Button').setInteractive().setDepth(1);
     const quitButton = this.add.image(960, 620, 'Quit_Button').setInteractive().setDepth(1);
     const settingsButton = this.add.image(960, 740, 'Settings_Button').setInteractive().setScale(0.5).setDepth(1);
 
-    startButton.on('pointerup', () => this.scene.start('NextScene'));
-    quitButton.on('pointerup', () => window.close());
-    settingsButton.on('pointerup', () => this.showSettings());
+    startButton.on('pointerover', () => startButton.setScale(1.05));
+    startButton.on('pointerout', () => startButton.setScale(1));
+    startButton.on('pointerdown', () => startButton.setTint(0xcccccc));
+    startButton.on('pointerup', () => {
+      startButton.clearTint();
+      this.scene.start('NextScene');
+    });
 
-    // Enhanced vignette
+    quitButton.on('pointerover', () => quitButton.setScale(1.05));
+    quitButton.on('pointerout', () => quitButton.setScale(1));
+    quitButton.on('pointerdown', () => quitButton.setTint(0xcccccc));
+    quitButton.on('pointerup', () => quitButton.clearTint());
+
+    settingsButton.on('pointerover', () => settingsButton.setScale(0.55));
+    settingsButton.on('pointerout', () => settingsButton.setScale(0.5));
+    settingsButton.on('pointerdown', () => settingsButton.setTint(0xcccccc));
+    settingsButton.on('pointerup', () => {
+      settingsButton.clearTint();
+      this.showSettings();
+    });
+
     const vignette = this.add.graphics().setDepth(0);
-    vignette.fillStyle(0x064c5c, 0.4); // darker, deeper
+    vignette.fillStyle(0x032e3e, 0.4);
     vignette.fillRect(0, 0, 1920, 1080);
     this.tweens.add({ targets: vignette, alpha: { from: 0.2, to: 0.4 }, duration: 4000, yoyo: true, repeat: -1 });
   }
@@ -110,7 +122,6 @@ class MainMenu extends Phaser.Scene {
   update(_, delta) {
     this.bubble.x = 960 + Math.sin(this.time.now * 0.001) * 30;
     this.bubble.setScale(1 + Math.sin(this.time.now * 0.0015) * 0.01);
-
     this.backgroundBubbles.forEach(b => {
       b.y -= b.speed;
       if (b.y < -50) {
@@ -127,7 +138,17 @@ class NextScene extends Phaser.Scene {
   }
 
   create() {
-    this.add.text(760, 500, 'Game Scene Loaded', { fontSize: '48px', fill: '#fff' });
+    this.add.image(960, 540, 'PG_Background');
+
+    const book = this.add.image(100, 960, 'PG_Fish_Book').setInteractive().setOrigin(0.5, 1).setDepth(2);
+    const cart = this.add.image(220, 960, 'PG_Shopping_Cart').setInteractive().setOrigin(0.5, 1).setDepth(2);
+
+    [book, cart].forEach(icon => {
+      icon.on('pointerover', () => icon.setScale(1.05));
+      icon.on('pointerout', () => icon.setScale(1));
+      icon.on('pointerdown', () => icon.setTint(0xcccccc));
+      icon.on('pointerup', () => icon.clearTint());
+    });
   }
 }
 
