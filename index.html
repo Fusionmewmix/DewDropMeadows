@@ -5,7 +5,7 @@
   <title>Dewdrop Meadows - Main Menu</title>
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.js"></script>
   <style>
-    body { margin: 0; background-color: navy; overflow: hidden; }
+    body { margin: 0; background-color: black; overflow: hidden; }
     canvas { display: block; margin: auto; }
   </style>
 </head>
@@ -144,27 +144,40 @@ class NextScene extends Phaser.Scene {
   }
 
   create() {
-    const cx = this.cameras.main.centerX;
-    const cy = this.cameras.main.centerY;
-    this.add.image(cx, cy, 'BG1').setDisplaySize(this.scale.width, this.scale.height).setDepth(0);
-    this.sun = this.add.image(cx + 500, cy - 200, 'BG4').setDepth(2);
-    this.clouds = this.add.image(cx, cy - 80, 'BG5').setDepth(3);
-    this.trees = this.add.image(cx, cy, 'BG2').setDepth(1);
-    this.add.image(cx, cy, 'BG3').setDepth(4);
-    this.foilage = this.add.image(cx, cy, 'BG6').setDepth(5);
-    this.add.image(cx, cy, 'BG7').setDepth(6);
-    this.add.image(cx, cy, 'BG8').setDepth(7);
+  const cx = this.cameras.main.centerX;
+  const cy = this.cameras.main.centerY;
 
-    const book = this.add.image(0, 0, 'PG_Fish_Book').setOrigin(0, 1).setScale(0.2).setInteractive().setDepth(10);
-    const cart = this.add.image(0, 0, 'PG_Shopping_Cart').setOrigin(0, 1).setScale(0.2).setInteractive().setDepth(10);
-    book.setPosition(10, this.cameras.main.height - 10);
-    cart.setPosition(book.x + book.displayWidth + 20, this.cameras.main.height - 10);
+  // Layered Background Setup
+  this.add.image(cx, cy, 'BG1').setDisplaySize(this.scale.width, this.scale.height).setDepth(0); // Sky
+  this.sun = this.add.image(cx + 400, cy - 300, 'BG4').setDepth(2); // Sun - repositioned into view
+  this.tweens.add({
+  targets: this.sun,
+  alpha: { from: 1, to: 0.7 },
+  duration: 2000,
+  yoyo: true,
+  repeat: -1,
+  ease: 'Sine.easeInOut'
+});
+  this.clouds = this.add.image(cx, cy - 100, 'BG5').setDepth(3); // Clouds - lowered
+  this.trees = this.add.image(cx, cy, 'BG2').setDepth(1); // Trees (swaying)
+  this.add.image(cx, cy, 'BG3').setDepth(4); // Terrain
+  this.foilage = this.add.image(cx, cy, 'BG6').setDepth(5); // Foreground bushes (swaying)
+  this.add.image(cx, cy, 'BG7').setDepth(6); // Pond
+  this.add.image(cx, cy, 'BG8').setDepth(7); // Bench & Sign
 
-    [book, cart].forEach(icon => {
-      icon.on('pointerdown', () => icon.setTint(0xcccccc));
-      icon.on('pointerup', () => icon.clearTint());
-    });
-  }
+  // Interactive Icons (resized + spaced)
+ // Interactive Icons (resized + spaced)
+const book = this.add.image(0, 0, 'PG_Fish_Book').setOrigin(0, 1).setScale(0.45).setInteractive().setDepth(10);
+const cart = this.add.image(0, 0, 'PG_Shopping_Cart').setOrigin(0, 1).setScale(0.45).setInteractive().setDepth(10);
+
+book.setPosition(40, this.cameras.main.height - 40);
+cart.setPosition(book.x + book.displayWidth + 40, this.cameras.main.height - 40);
+
+[book, cart].forEach(icon => {
+  icon.on('pointerdown', () => icon.setTint(0xcccccc));
+  icon.on('pointerup', () => icon.clearTint());
+});
+}
 
   update(_, delta) {
     this.swayTime = (this.swayTime || 0) + delta * 0.001;
