@@ -187,9 +187,11 @@ class MainMenu extends Phaser.Scene {
         duration: 600,
         ease: 'Quad.easeInOut'
       });
+      this.cameras.main.once('camerafadeoutcomplete', () => {
+        this.music.stop();
+        this.scene.start('NextScene');
+      });
       this.cameras.main.fadeOut(1000, 255, 255, 255);
-      this.music.stop();
-      this.time.delayedCall(1000, () => this.scene.start('NextScene'));
     });
 
     quitButton.on('pointerover', () => quitButton.setScale(1.05));
@@ -261,6 +263,7 @@ class NextScene extends Phaser.Scene {
 
   create() {
     this.fishingInProgress = false;
+    this.sound.play('Surface_Sound', { volume: 1 });
     this.fish = 0;
     const cx = this.cameras.main.centerX;
     const cy = this.cameras.main.centerY;
@@ -283,8 +286,6 @@ if (this.sun) {
     yoyo: true,
     repeat: -1
   });
-
-  this.sound.play('Surface_Sound', { volume: 1 });
 }
     
     this.char = this.add.image(cx, cy, 'Char_Start').setDepth(9).setScale(1);
