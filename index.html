@@ -39,6 +39,7 @@ class MainMenu extends Phaser.Scene {
 
     this.load.image('PG_Fish_Book', 'Assets/Game%20Scene/PG_Fish_Book.png');
     this.load.image('PG_Shopping_Cart', 'Assets/Game%20Scene/PG_Shopping_Cart.png');
+    this.load.image('Char_Start', 'Assets/Game%20Scene/Char_Start.png');
     this.load.image('Char_throw', 'Assets/Game%20Scene/Char_throw.png');
     this.load.image('Char_throw2', 'Assets/Game%20Scene/Char_throw2.png');
     this.load.image('Char_idle1', 'Assets/Game%20Scene/Char_idle1.png');
@@ -49,8 +50,6 @@ class MainMenu extends Phaser.Scene {
 
   create() {
     this.swayTime = 0;
-    this.settingsOpen = false;
-
     this.add.image(960, 540, 'MM_Background').setDepth(-3);
     this.music = this.sound.add('Water_Sound', { loop: true, volume: 0.5 });
     this.music.play();
@@ -90,15 +89,14 @@ class MainMenu extends Phaser.Scene {
       this.tweens.add({
         targets: [logo, startButton, quitButton, settingsButton],
         y: '+=300',
-        duration: 800,
-        ease: 'Cubic.easeIn'
+        ease: 'Back.easeIn',
+        duration: 600
       });
 
-      this.cameras.main.fadeOut(1000, 255, 255, 255);
-      this.music.stop();
-
-      this.time.delayedCall(1000, () => {
-        this.scene.start('NextScene');
+      this.time.delayedCall(700, () => {
+        this.cameras.main.fadeOut(800, 255, 255, 255);
+        this.music.stop();
+        this.time.delayedCall(800, () => this.scene.start('NextScene'));
       });
     });
 
@@ -114,7 +112,7 @@ class MainMenu extends Phaser.Scene {
       settingsButton.clearTint();
       if (!this.settingsOpen) {
         this.settingsOpen = true;
-        this.showSettings(() => { this.settingsOpen = false; });
+        this.showSettings(() => { this.settingsOpen = false });
       }
     });
 
@@ -175,7 +173,7 @@ class NextScene extends Phaser.Scene {
     const cy = this.cameras.main.centerY;
 
     this.add.image(cx, cy, 'BG1').setDisplaySize(this.scale.width, this.scale.height).setDepth(1);
-    this.sun = this.add.image(cx, cy, 'BG4').setScale(0.8).setDepth(4);
+    this.sun = this.add.image(cx + 0, cy + 0, 'BG4').setScale(0.8).setDepth(4);
     this.tweens.add({ targets: this.sun, alpha: { from: 1, to: 0.7 }, duration: 2000, yoyo: true, repeat: -1 });
 
     this.clouds = this.add.image(cx, cy - 100, 'BG5').setDepth(5);
@@ -185,22 +183,69 @@ class NextScene extends Phaser.Scene {
     this.add.image(cx, cy, 'BG7').setDepth(7);
     this.add.image(cx, cy, 'BG8').setDepth(8);
 
+    const book = this.add.image(0, 0, 'PG_Fish_Book').setOrigin(1, 1).setScale(0.5).setInteractive().setDepth(10);
+    const cart = this.add.image(0, 0, 'PG_Shopping_Cart').setOrigin(1, 1).setScale(0.5).setInteractive().setDepth(10);
+    cart.setPosition(this.cameras.main.width - 40, this.cameras.main.height - 40);
+    book.setPosition(cart.x - cart.displayWidth - 20, this.cameras.main.height - 40);
+
+    [book, cart].forEach(icon => {
+      icon.on('pointerdown', () => icon.setTint(0xcccccc));
+      icon.on('pointerup', () => icon.clearTint());
+    });
+
+    const gear = this.add.image(40, this.cameras.main.height - 40, 'Settings_Button')
+      .setOrigin(0, 1)
+      .setScale(0.65)
+      .setInteractive()
+      .setDepth(10);
+
+    gear.on('pointerdown', () => {
+      if (!this.settingsOpen) {
+        this.settingsOpen = true;
+        this.showSettings(this.outdoorSound, () => { this.settingsOpen = false });
+      }
+    });
+
     this.outdoorSound = this.sound.add('Outdoors_Sound', { loop: true, volume: 0 });
     this.outdoorSound.play();
     this.tweens.add({ targets: this.outdoorSound, volume: 0.5, duration: 2000 });
 
-    const gear = this.add.image(40, this.cameras.main.height - 40, 'Settings_Button')
-      .setOrigin(0, 1)
-      .setScale(0.65) // increased size
-      .setDepth(10)
-      .setInteractive();
+    this.char = this.add.image(cx + 0, cy + 0, 'Char_Start').setDepth(9).setScale(1);
 
-    this.settingsOpen = false;
-    gear.on('pointerdown', () => {
-      if (!this.settingsOpen) {
-        this.settingsOpen = true;
-        this.showSettings(this.outdoorSound, () => { this.settingsOpen = false; });
-      }
+    this.cursor = this.add.image(580, 790, 'Select_2').setScale(0.5).setDepth(10);
+    this.cursorFrames = ['Select_2', 'Select_1'];
+    this.cursorFrameIndex = 0;
+    this.cursorTimer = this.time.addEvent({
+      delay: 500,
+      callback: () => {
+        this.cursorFrameIndex = (this.cursorFrameIndex + 1) % this.cursorFrames.length;
+        this.cursor.setTexture(this.cursorFrames[this.cursorFrameIndex]);
+      },
+      loop: true
+    });
+
+    this.input.once('pointerdown', () => {
+      this.cursor.destroy();
+      this.cursorTimer.remove();
+      this.char.setTexture('Char_throw');
+
+      this.time.delayedCall(300, () => {
+        this.char.setTexture('Char_throw2');
+
+        this.time.delayedCall(300, () => {
+          this.idleState = 0;
+          this.char.setTexture('Char_idle1');
+
+          this.time.addEvent({
+            delay: 600,
+            callback: () => {
+              this.idleState = 1 - this.idleState;
+              this.char.setTexture(this.idleState === 0 ? 'Char_idle1' : 'Char_idle2');
+            },
+            loop: true
+          });
+        });
+      });
     });
   }
 
@@ -213,7 +258,6 @@ class NextScene extends Phaser.Scene {
 
     toggle.x = 960 + (480 * 0.5);
     let isDragging = false;
-
     toggle.on('pointerdown', () => isDragging = true);
     this.input.on('pointerup', () => isDragging = false);
     this.input.on('pointermove', (pointer) => {
@@ -237,28 +281,9 @@ class NextScene extends Phaser.Scene {
     this.trees.x = this.cameras.main.centerX + Math.sin(this.swayTime) * 5;
     this.foilage.x = this.cameras.main.centerX + Math.sin(this.swayTime + 1) * 5;
     this.clouds.x += 0.8;
-    if (this.clouds.x > this.cameras.main.width + 200) {
-      this.clouds.x = -200;
-    }
+    if (this.clouds.x > this.cameras.main.width + 200) this.clouds.x = -200;
   }
 }
-
-const config = {
-  type: Phaser.AUTO,
-  width: 1920,
-  height: 1080,
-  backgroundColor: '#000000',
-  scene: [MainMenu, NextScene],
-  scale: {
-    mode: Phaser.Scale.FIT,
-    autoCenter: Phaser.Scale.CENTER_BOTH
-  },
-  audio: {
-    disableWebAudio: false
-  }
-};
-
-new Phaser.Game(config);
 </script>
 </body>
 </html>
