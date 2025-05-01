@@ -216,23 +216,36 @@ class NextScene extends Phaser.Scene {
 
     // Interaction: casting → idle
     this.input.once('pointerdown', () => {
-      if (this.cursor) this.cursor.destroy();
-      this.char.setTexture('Char_throw2');
+  if (this.cursor) {
+    this.cursorTimer.remove();
+    this.cursor.destroy();
+    this.cursor = null;
+  }
 
-      this.time.delayedCall(300, () => {
-        this.idleState = 0;
-        this.char.setTexture('Char_idle1');
-        this.time.addEvent({
-          delay: 600,
-          callback: () => {
-            this.idleState = 1 - this.idleState;
-            const next = this.idleState === 0 ? 'Char_idle1' : 'Char_idle2';
-            this.char.setTexture(next);
-          },
-          loop: true
-        });
-      });
+  if (this.char) {
+    this.char.setTexture('Char_throw2');
+  }
+
+  // Start idle loop after delay
+  this.time.delayedCall(300, () => {
+    if (!this.char) return;
+
+    this.idleState = 0;
+    this.char.setTexture('Char_idle1');
+
+    // Begin idle animation cycle
+    this.idleTimer = this.time.addEvent({
+      delay: 600,
+      callback: () => {
+        if (!this.char) return;
+        this.idleState = 1 - this.idleState;
+        const next = this.idleState === 0 ? 'Char_idle1' : 'Char_idle2';
+        this.char.setTexture(next);
+      },
+      loop: true
     });
+  });
+});
   }
 
   update(_, delta) {
