@@ -81,13 +81,20 @@ class FishingSystem {
 }
 
   roll(score) {
-    let rng = Phaser.Math.Between(0, 40) + score * 3;
-    if (rng > 70) return { type: 'fish3' };
-    if (rng > 50) return { type: 'fish2' };
-    if (rng > 20) return { type: 'fish1' };
-    if score == 0 return { type: 'rock' };
+  let rng = Phaser.Math.Between(0, 40) + score * 3;
+
+  if (score === 0) {
+    return { type: 'rock' };
+  } else if (rng > 70) {
+    return { type: 'fish3' };
+  } else if (rng > 50) {
+    return { type: 'fish2' };
+  } else if (rng > 20) {
+    return { type: 'fish1' };
+  } else {
     return { type: 'rock' };
   }
+}
 
   hasWon() {
     return this.collected.has('fish1') && this.collected.has('fish2') && this.collected.has('fish3');
