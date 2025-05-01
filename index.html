@@ -336,8 +336,8 @@ beginIdleAndFishingLogic() {
     loop: true
   });
 
-  this.buttonQ = this.add.image(750, 570, 'Button_Q').setDepth(12).setVisible(false).setAlpha(0);
-  this.buttonE = this.add.image(850, 570, 'Button_E').setDepth(12).setVisible(false).setAlpha(0);
+  this.buttonQ = this.add.image(950, 570, 'Button_Q').setDepth(12).setVisible(false).setAlpha(0);
+  this.buttonE = this.add.image(1050, 570, 'Button_E').setDepth(12).setVisible(false).setAlpha(0);
 
   fishing = new FishingSystem(this); // Instantiate
   fishing.startFishing((result) => {
