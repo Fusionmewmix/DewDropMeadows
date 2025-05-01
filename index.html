@@ -149,7 +149,7 @@ class NextScene extends Phaser.Scene {
 
   // Layered Background Setup
   this.add.image(cx, cy, 'BG1').setDisplaySize(this.scale.width, this.scale.height).setDepth(0); // Sky
-  this.sun = this.add.image(cx + 600, cy - 380, 'BG4').setDepth(2); // Sun - repositioned into view
+  this.sun = this.add.image(cx - 500, cy - 400, 'BG4').setDepth(2); // Moved sun to upper left
   this.tweens.add({
   targets: this.sun,
   alpha: { from: 1, to: 0.7 },
