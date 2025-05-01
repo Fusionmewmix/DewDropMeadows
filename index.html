@@ -71,16 +71,6 @@ class FishingSystem {
     callback(result);
   });
 }
-  
-    this.scene.input.keyboard.on('keydown', handler);
-    this.scene.time.delayedCall(4000, () => {
-      this.scene.input.keyboard.off('keydown', handler);
-      const result = this.roll(this.points);
-      if (result.type !== 'rock') this.collected.add(result.type);
-      console.log("Fishing result:", result.type);
-      callback(result);
-    });
-  }
 
   roll(score) {
     let rng = Phaser.Math.Between(0, 100) + score * 5;
