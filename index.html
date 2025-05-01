@@ -136,6 +136,12 @@ class MainMenu extends Phaser.Scene {
     this.load.image('Char_pull', 'Assets/Game%20Scene/Char_pull.png');
     this.load.image('Button_Q', 'Assets/Game%20Scene/Button_Q.png');
     this.load.image('Button_E', 'Assets/Game%20Scene/Button_E.png');
+    this.load.audio('Surface_Sound', 'Assets/Game%20Scene/Outdoors_Sound.mp3');
+    this.load.audio('Fishing_Sound', 'Assets/Game%20Scene/Outdoors_Sound.mp3');
+    this.load.audio('Splash_Sound', 'Assets/Game%20Scene/Outdoors_Sound.mp3');
+    this.load.audio('Happy_Sound', 'Assets/Game%20Scene/Outdoors_Sound.mp3');
+    this.load.audio('Sad_Sound', 'Assets/Game%20Scene/Outdoors_Sound.mp3');
+    this.load.audio('Recall_Sound', 'Assets/Game%20Scene/Outdoors_Sound.mp3');
   }
 
   create() {
@@ -156,6 +162,7 @@ class MainMenu extends Phaser.Scene {
       frameRate: 3,
       repeat: -1
     });
+    
     this.bubble = this.add.sprite(960, 540, 'Bubble_Sheet').play('bubbleFloat').setDepth(-2);
 
     this.backgroundBubbles = [];
@@ -275,6 +282,8 @@ if (this.sun) {
     duration: 2000,
     yoyo: true,
     repeat: -1
+
+  this.sound.play('Surface_Sound', { volume: 1 });
   });
 }
     
@@ -320,21 +329,24 @@ if (this.sun) {
 
   startFishingSequence() {
   const sequence = [
-    { frame: 'Char_throw', delay: 300 },
-    { frame: 'Char_throw2', delay: 300 },
+    { frame: 'Char_throw', sound: 'Fishing_Sound', delay: 300 },
+    { frame: 'Char_throw2', sound: 'Splash_Sound', delay: 300 },
     { frame: 'Char_idle1', delay: 0 }
   ];
 
   let index = 0;
   const playNext = () => {
+    const step = sequence[index];
+    this.char.setTexture(step.frame);
+    if (step.sound) this.sound.play(step.sound, { volume: 1 });
+    index++;
     if (index < sequence.length) {
-      this.char.setTexture(sequence[index].frame);
-      this.time.delayedCall(sequence[index].delay, playNext);
-      index++;
+      this.time.delayedCall(step.delay, playNext);
     } else {
       this.beginIdleAndFishingLogic();
     }
   };
+
   playNext();
 }
 
@@ -356,7 +368,8 @@ beginIdleAndFishingLogic() {
   fishing.startFishing((result) => {
     idleLoop.remove();
     this.char.setTexture('Char_pull');
-  
+    this.sound.play('Recall_Sound', { volume: 1 });
+
     this.time.delayedCall(600, () => {
       // Update fish variable
       if (result.type === 'rock') {
@@ -370,6 +383,7 @@ beginIdleAndFishingLogic() {
         this.playRockBreak();
       } else {
         this.char.setTexture('Char_Fish');
+        this.sound.play('Happy_Sound', { volume: 1 });
         this.time.delayedCall(1000, () => {
           this.char.setTexture('Char_Start');
           if (fishing.hasWon()) {
@@ -388,6 +402,7 @@ beginIdleAndFishingLogic() {
 
   playRockBreak() {
   let toggle = false;
+  this.sound.play('Sad_Sound', { volume: 1 });
   const rockLoop = this.time.addEvent({
     delay: 400,
     callback: () => {
