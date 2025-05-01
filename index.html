@@ -208,10 +208,10 @@ class MainMenu extends Phaser.Scene {
     this.settingsOpen = true;
 
     const bg = this.add.image(960, 540, 'UI_Short').setDepth(14);
-    const bar = this.add.image(960, 550, 'Sound_Bar').setDepth(11);
-    const toggle = this.add.image(1200, 550, 'Sound_Toggle').setInteractive().setDepth(12);
-    const close = this.add.image(960, 670, 'Settings_Close').setInteractive().setDepth(12).setScale(0.5);
-    const text = this.add.text(960, 600, '50%', { fontSize: '32px', color: '#000' }).setOrigin(0.5).setDepth(12);
+    const bar = this.add.image(960, 550, 'Sound_Bar').setDepth(15);
+    const toggle = this.add.image(1200, 550, 'Sound_Toggle').setInteractive().setDepth(16);
+    const close = this.add.image(960, 670, 'Settings_Close').setInteractive().setDepth(16).setScale(0.5);
+    const text = this.add.text(960, 600, '50%', { fontSize: '32px', color: '#000' }).setOrigin(0.5).setDepth(16);
 
     toggle.x = 960 + 240;
     let isDragging = false;
@@ -267,16 +267,17 @@ bgNames.forEach((name, i) => {
     .setDepth(i + 1); // preserve existing depths
   this.bgGroup.add(bg);
 });
-    this.sun = this.add.image(cx, cy, 'BG4').setScale(0.8).setDepth(4);
-    this.tweens.add({ targets: this.sun, alpha: { from: 1, to: 0.7 }, duration: 2000, yoyo: true, repeat: -1 });
-
-    this.clouds = this.add.image(cx, cy - 100, 'BG5').setDepth(5);
-    this.trees = this.add.image(cx, cy, 'BG2').setDepth(2);
-    this.add.image(cx, cy, 'BG3').setDepth(3);
-    this.foilage = this.add.image(cx, cy, 'BG6').setDepth(6);
-    this.add.image(cx, cy, 'BG7').setDepth(7);
-    this.add.image(cx, cy, 'BG8').setDepth(8);
-
+   this.sun = this.bgGroup.getChildren().find(img => img.texture.key === 'BG4');
+if (this.sun) {
+  this.tweens.add({
+    targets: this.sun,
+    alpha: { from: 1, to: 0.7 },
+    duration: 2000,
+    yoyo: true,
+    repeat: -1
+  });
+}
+    
     this.char = this.add.image(cx, cy, 'Char_Start').setDepth(9).setScale(1);
     this.cursor = this.add.image(580, 790, 'Select_2').setScale(0.5).setDepth(10);
     this.cursorFrames = ['Select_2', 'Select_1'];
@@ -348,8 +349,8 @@ beginIdleAndFishingLogic() {
     loop: true
   });
 
-  this.buttonQ = this.add.image(950, 570, 'Button_Q').setDepth(12).setVisible(false).setAlpha(0);
-  this.buttonE = this.add.image(1050, 570, 'Button_E').setDepth(12).setVisible(false).setAlpha(0);
+  this.buttonQ = this.add.image(1350, 570, 'Button_Q').setDepth(12).setVisible(false).setAlpha(0);
+  this.buttonE = this.add.image(1550, 570, 'Button_E').setDepth(12).setVisible(false).setAlpha(0);
 
   fishing = new FishingSystem(this); // Instantiate
   fishing.startFishing((result) => {
@@ -411,10 +412,10 @@ beginIdleAndFishingLogic() {
     this.settingsOpen = true;
 
     const bg = this.add.image(960, 540, 'UI_Short').setDepth(14);
-    const bar = this.add.image(960, 550, 'Sound_Bar').setDepth(11);
-    const toggle = this.add.image(1200, 550, 'Sound_Toggle').setInteractive().setDepth(12);
-    const close = this.add.image(960, 670, 'Settings_Close').setInteractive().setDepth(12).setScale(0.5);
-    const text = this.add.text(960, 600, '50%', { fontSize: '32px', color: '#000' }).setOrigin(0.5).setDepth(12);
+    const bar = this.add.image(960, 550, 'Sound_Bar').setDepth(15);
+    const toggle = this.add.image(1200, 550, 'Sound_Toggle').setInteractive().setDepth(16);
+    const close = this.add.image(960, 670, 'Settings_Close').setInteractive().setDepth(16).setScale(0.5);
+    const text = this.add.text(960, 600, '50%', { fontSize: '32px', color: '#000' }).setOrigin(0.5).setDepth(16);
 
     toggle.x = 960 + 240;
     let isDragging = false;
