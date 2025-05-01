@@ -74,7 +74,7 @@ class MainMenu extends Phaser.Scene {
       this.backgroundBubbles.push(container);
     }
 
-    this.add.image(960, 250, 'DDM_Logo').setDepth(1);
+    const logo = this.add.image(960, 250, 'DDM_Logo').setDepth(1);
     const startButton = this.add.image(960, 500, 'Start_Button').setInteractive().setDepth(1);
     const quitButton = this.add.image(960, 620, 'Quit_Button').setInteractive().setDepth(1);
     const settingsButton = this.add.image(960, 740, 'Settings_Button').setInteractive().setScale(0.5).setDepth(1);
@@ -87,10 +87,10 @@ class MainMenu extends Phaser.Scene {
 
       this.cameras.main.pan(960, 0, 1000, 'Power2');
       this.tweens.add({
-        targets: [startButton, quitButton, settingsButton],
-        y: '+=400',
-        duration: 600,
-        ease: 'Back.easeIn'
+        targets: [startButton, quitButton, settingsButton, logo],
+        y: '+=300',
+        duration: 800,
+        ease: 'Cubic.easeIn'
       });
 
       this.cameras.main.fadeOut(1000, 255, 255, 255);
@@ -111,7 +111,7 @@ class MainMenu extends Phaser.Scene {
     settingsButton.on('pointerdown', () => settingsButton.setTint(0xcccccc));
     settingsButton.on('pointerup', () => {
       settingsButton.clearTint();
-      this.showSettings(this.music);
+      this.showSettings();
     });
 
     const vignette = this.add.graphics().setDepth(0);
@@ -120,16 +120,14 @@ class MainMenu extends Phaser.Scene {
     this.tweens.add({ targets: vignette, alpha: { from: 0.2, to: 0.4 }, duration: 4000, yoyo: true, repeat: -1 });
   }
 
-  showSettings(audioTarget) {
+  showSettings() {
     const bg = this.add.image(960, 540, 'UI_Short').setDepth(10);
     const bar = this.add.image(960, 550, 'Sound_Bar').setDepth(11);
     const toggle = this.add.image(1200, 550, 'Sound_Toggle').setInteractive().setDepth(12);
     const close = this.add.image(960, 670, 'Settings_Close').setInteractive().setDepth(12).setScale(0.5);
-    const text = this.add.text(960, 600, '50%', { fontSize: '32px', color: '#000' }).setOrigin(0.5).setDepth(12);
+    const text = this.add.text(960, 600, '100%', { fontSize: '32px', color: '#000' }).setOrigin(0.5).setDepth(12);
 
-    toggle.x = 960 + (480 * 0.5);
     let isDragging = false;
-
     toggle.on('pointerdown', () => isDragging = true);
     this.input.on('pointerup', () => isDragging = false);
     this.input.on('pointermove', (pointer) => {
@@ -139,7 +137,7 @@ class MainMenu extends Phaser.Scene {
       toggle.x = Phaser.Math.Clamp(pointer.x, minX, maxX);
       const percent = Math.round(((toggle.x - minX) / (maxX - minX)) * 100);
       text.setText(`${percent}%`);
-      if (audioTarget) audioTarget.setVolume(percent / 100);
+      this.music.setVolume(percent / 100);
     });
 
     close.on('pointerup', () => {
@@ -172,7 +170,7 @@ class NextScene extends Phaser.Scene {
     const cy = this.cameras.main.centerY;
 
     this.add.image(cx, cy, 'BG1').setDisplaySize(this.scale.width, this.scale.height).setDepth(1);
-    this.sun = this.add.image(cx + 0, cy + 0, 'BG4').setScale(0.8).setDepth(4);
+    this.sun = this.add.image(cx, cy, 'BG4').setScale(0.8).setDepth(4);
     this.tweens.add({ targets: this.sun, alpha: { from: 1, to: 0.7 }, duration: 2000, yoyo: true, repeat: -1 });
 
     this.clouds = this.add.image(cx, cy - 100, 'BG5').setDepth(5);
@@ -182,17 +180,61 @@ class NextScene extends Phaser.Scene {
     this.add.image(cx, cy, 'BG7').setDepth(7);
     this.add.image(cx, cy, 'BG8').setDepth(8);
 
+    // Character & icons
+    this.char = this.add.image(cx, cy, 'Char_throw').setDepth(9).setScale(1);
+    this.cursor = this.add.image(580, 790, 'Select_2').setScale(0.5).setDepth(10);
+    this.cursorFrames = ['Select_2', 'Select_1'];
+    this.cursorFrameIndex = 0;
+    this.cursorTimer = this.time.addEvent({
+      delay: 500,
+      callback: () => {
+        this.cursorFrameIndex = (this.cursorFrameIndex + 1) % this.cursorFrames.length;
+        this.cursor.setTexture(this.cursorFrames[this.cursorFrameIndex]);
+      },
+      loop: true
+    });
+
+    const book = this.add.image(0, 0, 'PG_Fish_Book').setOrigin(1, 1).setScale(0.5).setInteractive().setDepth(10);
+    const cart = this.add.image(0, 0, 'PG_Shopping_Cart').setOrigin(1, 1).setScale(0.5).setInteractive().setDepth(10);
+    cart.setPosition(this.cameras.main.width - 40, this.cameras.main.height - 40);
+    book.setPosition(cart.x - cart.displayWidth - 20, this.cameras.main.height - 40);
+
+    // Fade in ambient sound
     this.outdoorSound = this.sound.add('Outdoors_Sound', { loop: true, volume: 0 });
     this.outdoorSound.play();
     this.tweens.add({ targets: this.outdoorSound, volume: 0.5, duration: 2000 });
 
-    const gear = this.add.image(40, this.cameras.main.height - 40, 'Settings_Button')
-      .setOrigin(0, 1)
-      .setScale(0.5)
-      .setDepth(10)
-      .setInteractive();
-
+    // Gear settings
+    const gear = this.add.image(40, this.cameras.main.height - 40, 'Settings_Button').setOrigin(0, 1).setScale(0.5).setDepth(10).setInteractive();
     gear.on('pointerdown', () => this.showSettings(this.outdoorSound));
+
+    [book, cart].forEach(icon => {
+      icon.on('pointerdown', () => icon.setTint(0xcccccc));
+      icon.on('pointerup', () => icon.clearTint());
+    });
+
+    this.input.once('pointerdown', () => {
+      if (this.cursor) {
+        this.cursorTimer.remove();
+        this.cursor.destroy();
+        this.cursor = null;
+      }
+
+      this.char.setTexture('Char_throw2');
+      this.time.delayedCall(300, () => {
+        this.idleState = 0;
+        this.char.setTexture('Char_idle1');
+        this.idleTimer = this.time.addEvent({
+          delay: 600,
+          callback: () => {
+            this.idleState = 1 - this.idleState;
+            const next = this.idleState === 0 ? 'Char_idle1' : 'Char_idle2';
+            this.char.setTexture(next);
+          },
+          loop: true
+        });
+      });
+    });
   }
 
   showSettings(audioTarget) {
@@ -221,7 +263,34 @@ class NextScene extends Phaser.Scene {
       bg.destroy(); bar.destroy(); toggle.destroy(); close.destroy(); text.destroy();
     });
   }
+
+  update(_, delta) {
+    this.swayTime = (this.swayTime || 0) + delta * 0.001;
+    this.trees.x = this.cameras.main.centerX + Math.sin(this.swayTime) * 5;
+    this.foilage.x = this.cameras.main.centerX + Math.sin(this.swayTime + 1) * 5;
+    this.clouds.x += 0.8;
+    if (this.clouds.x > this.cameras.main.width + 200) {
+      this.clouds.x = -200;
+    }
+  }
 }
+
+const config = {
+  type: Phaser.AUTO,
+  width: 1920,
+  height: 1080,
+  backgroundColor: '#000000',
+  scene: [MainMenu, NextScene],
+  scale: {
+    mode: Phaser.Scale.FIT,
+    autoCenter: Phaser.Scale.CENTER_BOTH
+  },
+  audio: {
+    disableWebAudio: false
+  }
+};
+
+new Phaser.Game(config);
 </script>
 </body>
 </html>
