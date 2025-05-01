@@ -49,6 +49,8 @@ class MainMenu extends Phaser.Scene {
 
   create() {
     this.swayTime = 0;
+    this.settingsOpen = false;
+
     this.add.image(960, 540, 'MM_Background').setDepth(-3);
     this.music = this.sound.add('Water_Sound', { loop: true, volume: 0.5 });
     this.music.play();
@@ -85,9 +87,8 @@ class MainMenu extends Phaser.Scene {
     startButton.on('pointerup', () => {
       startButton.clearTint();
 
-      this.cameras.main.pan(960, 0, 1000, 'Power2');
       this.tweens.add({
-        targets: [startButton, quitButton, settingsButton, logo],
+        targets: [logo, startButton, quitButton, settingsButton],
         y: '+=300',
         duration: 800,
         ease: 'Cubic.easeIn'
@@ -111,7 +112,10 @@ class MainMenu extends Phaser.Scene {
     settingsButton.on('pointerdown', () => settingsButton.setTint(0xcccccc));
     settingsButton.on('pointerup', () => {
       settingsButton.clearTint();
-      this.showSettings();
+      if (!this.settingsOpen) {
+        this.settingsOpen = true;
+        this.showSettings(() => { this.settingsOpen = false; });
+      }
     });
 
     const vignette = this.add.graphics().setDepth(0);
@@ -120,7 +124,7 @@ class MainMenu extends Phaser.Scene {
     this.tweens.add({ targets: vignette, alpha: { from: 0.2, to: 0.4 }, duration: 4000, yoyo: true, repeat: -1 });
   }
 
-  showSettings() {
+  showSettings(onClose) {
     const bg = this.add.image(960, 540, 'UI_Short').setDepth(10);
     const bar = this.add.image(960, 550, 'Sound_Bar').setDepth(11);
     const toggle = this.add.image(1200, 550, 'Sound_Toggle').setInteractive().setDepth(12);
@@ -142,6 +146,7 @@ class MainMenu extends Phaser.Scene {
 
     close.on('pointerup', () => {
       bg.destroy(); bar.destroy(); toggle.destroy(); close.destroy(); text.destroy();
+      if (onClose) onClose();
     });
   }
 
@@ -180,64 +185,26 @@ class NextScene extends Phaser.Scene {
     this.add.image(cx, cy, 'BG7').setDepth(7);
     this.add.image(cx, cy, 'BG8').setDepth(8);
 
-    // Character & icons
-    this.char = this.add.image(cx, cy, 'Char_throw').setDepth(9).setScale(1);
-    this.cursor = this.add.image(580, 790, 'Select_2').setScale(0.5).setDepth(10);
-    this.cursorFrames = ['Select_2', 'Select_1'];
-    this.cursorFrameIndex = 0;
-    this.cursorTimer = this.time.addEvent({
-      delay: 500,
-      callback: () => {
-        this.cursorFrameIndex = (this.cursorFrameIndex + 1) % this.cursorFrames.length;
-        this.cursor.setTexture(this.cursorFrames[this.cursorFrameIndex]);
-      },
-      loop: true
-    });
-
-    const book = this.add.image(0, 0, 'PG_Fish_Book').setOrigin(1, 1).setScale(0.5).setInteractive().setDepth(10);
-    const cart = this.add.image(0, 0, 'PG_Shopping_Cart').setOrigin(1, 1).setScale(0.5).setInteractive().setDepth(10);
-    cart.setPosition(this.cameras.main.width - 40, this.cameras.main.height - 40);
-    book.setPosition(cart.x - cart.displayWidth - 20, this.cameras.main.height - 40);
-
-    // Fade in ambient sound
     this.outdoorSound = this.sound.add('Outdoors_Sound', { loop: true, volume: 0 });
     this.outdoorSound.play();
     this.tweens.add({ targets: this.outdoorSound, volume: 0.5, duration: 2000 });
 
-    // Gear settings
-    const gear = this.add.image(40, this.cameras.main.height - 40, 'Settings_Button').setOrigin(0, 1).setScale(0.5).setDepth(10).setInteractive();
-    gear.on('pointerdown', () => this.showSettings(this.outdoorSound));
+    const gear = this.add.image(40, this.cameras.main.height - 40, 'Settings_Button')
+      .setOrigin(0, 1)
+      .setScale(0.65) // increased size
+      .setDepth(10)
+      .setInteractive();
 
-    [book, cart].forEach(icon => {
-      icon.on('pointerdown', () => icon.setTint(0xcccccc));
-      icon.on('pointerup', () => icon.clearTint());
-    });
-
-    this.input.once('pointerdown', () => {
-      if (this.cursor) {
-        this.cursorTimer.remove();
-        this.cursor.destroy();
-        this.cursor = null;
+    this.settingsOpen = false;
+    gear.on('pointerdown', () => {
+      if (!this.settingsOpen) {
+        this.settingsOpen = true;
+        this.showSettings(this.outdoorSound, () => { this.settingsOpen = false; });
       }
-
-      this.char.setTexture('Char_throw2');
-      this.time.delayedCall(300, () => {
-        this.idleState = 0;
-        this.char.setTexture('Char_idle1');
-        this.idleTimer = this.time.addEvent({
-          delay: 600,
-          callback: () => {
-            this.idleState = 1 - this.idleState;
-            const next = this.idleState === 0 ? 'Char_idle1' : 'Char_idle2';
-            this.char.setTexture(next);
-          },
-          loop: true
-        });
-      });
     });
   }
 
-  showSettings(audioTarget) {
+  showSettings(audioTarget, onClose) {
     const bg = this.add.image(960, 540, 'UI_Short').setDepth(10);
     const bar = this.add.image(960, 550, 'Sound_Bar').setDepth(11);
     const toggle = this.add.image(1200, 550, 'Sound_Toggle').setInteractive().setDepth(12);
@@ -261,6 +228,7 @@ class NextScene extends Phaser.Scene {
 
     close.on('pointerup', () => {
       bg.destroy(); bar.destroy(); toggle.destroy(); close.destroy(); text.destroy();
+      if (onClose) onClose();
     });
   }
 
