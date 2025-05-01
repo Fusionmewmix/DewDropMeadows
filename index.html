@@ -157,7 +157,13 @@ class NextScene extends Phaser.Scene {
 
     this.add.image(cx, cy, 'BG1').setDisplaySize(this.scale.width, this.scale.height).setDepth(1);
     this.sun = this.add.image(cx + 400, cy - 200, 'BG4').setScale(0.8).setDepth(4);
-    this.tweens.add({ targets: this.sun, alpha: { from: 1, to: 0.7 }, duration: 2000, yoyo: true, repeat: -1 });
+    this.tweens.add({
+      targets: this.sun,
+      alpha: { from: 1, to: 0.7 },
+      duration: 2000,
+      yoyo: true,
+      repeat: -1
+    });
 
     this.clouds = this.add.image(cx, cy - 100, 'BG5').setDepth(5);
     this.trees = this.add.image(cx, cy, 'BG2').setDepth(2);
@@ -166,24 +172,16 @@ class NextScene extends Phaser.Scene {
     this.add.image(cx, cy, 'BG7').setDepth(7);
     this.add.image(cx, cy, 'BG8').setDepth(8);
 
-    const book = this.add.image(0, 0, 'PG_Fish_Book').setOrigin(1, 1).setScale(0.5).setInteractive().setDepth(10);
-    const cart = this.add.image(0, 0, 'PG_Shopping_Cart').setOrigin(1, 1).setScale(0.5).setInteractive().setDepth(10);
-    cart.setPosition(this.cameras.main.width - 40, this.cameras.main.height - 40);
-    book.setPosition(cart.x - cart.displayWidth - 20, this.cameras.main.height - 40);
+    // Character on bench
+    this.char = this.add.image(430, 710, 'Char_throw')  // Adjusted to match reference
+      .setScale(1.15)
+      .setDepth(9);
 
-    [book, cart].forEach(icon => {
-      icon.on('pointerdown', () => icon.setTint(0xcccccc));
-      icon.on('pointerup', () => icon.clearTint());
-    });
+    // Cursor effect: reverse cycling
+    this.cursor = this.add.image(580, 790, 'Select_2')  // Adjusted to hover above bobber
+      .setScale(0.5)
+      .setDepth(10);
 
-    // Character positioning on bench
-    const charX = 420;  // adjust to sit naturally on bench
-    const charY = cy + 60;  // lowered slightly to align body with seat
-    this.char = this.add.image(cx + 0, cy + 0, 'Char_throw').setDepth(9).setScale(1);
-
-
-    // Smaller cursor cycling between Select_2 → Select_1 (reversed)
-    this.cursor = this.add.image(cx + 180, cy + 180, 'Select_2').setScale(0.5).setDepth(10);
     this.cursorFrames = ['Select_2', 'Select_1'];
     this.cursorFrameIndex = 0;
     this.cursorTimer = this.time.addEvent({
@@ -195,18 +193,36 @@ class NextScene extends Phaser.Scene {
       loop: true
     });
 
-    this.input.once('pointerdown', () => {
-      if (this.cursor) this.cursor.destroy(); // Remove the cursor
+    // Book + cart
+    const book = this.add.image(0, 0, 'PG_Fish_Book')
+      .setOrigin(1, 1)
+      .setScale(0.5)
+      .setInteractive()
+      .setDepth(10);
 
+    const cart = this.add.image(0, 0, 'PG_Shopping_Cart')
+      .setOrigin(1, 1)
+      .setScale(0.5)
+      .setInteractive()
+      .setDepth(10);
+
+    cart.setPosition(this.cameras.main.width - 40, this.cameras.main.height - 40);
+    book.setPosition(cart.x - cart.displayWidth - 20, this.cameras.main.height - 40);
+
+    [book, cart].forEach(icon => {
+      icon.on('pointerdown', () => icon.setTint(0xcccccc));
+      icon.on('pointerup', () => icon.clearTint());
+    });
+
+    // Interaction: casting → idle
+    this.input.once('pointerdown', () => {
+      if (this.cursor) this.cursor.destroy();
       this.char.setTexture('Char_throw2');
 
-  // Wait 300ms before starting idle loop (instead of full 500ms delay)
       this.time.delayedCall(300, () => {
         this.idleState = 0;
         this.char.setTexture('Char_idle1');
-
-    // Start idle loop that doesn't block input or update
-        this.idleTimer = this.time.addEvent({
+        this.time.addEvent({
           delay: 600,
           callback: () => {
             this.idleState = 1 - this.idleState;
@@ -220,12 +236,13 @@ class NextScene extends Phaser.Scene {
   }
 
   update(_, delta) {
-  this.swayTime = (this.swayTime || 0) + delta * 0.001;
-  this.trees.x = this.cameras.main.centerX + Math.sin(this.swayTime) * 5;
-  this.foilage.x = this.cameras.main.centerX + Math.sin(this.swayTime + 1) * 5;
-  this.clouds.x += 0.8;
-  if (this.clouds.x > this.cameras.main.width + 200) {
-    this.clouds.x = -200;
+    this.swayTime = (this.swayTime || 0) + delta * 0.001;
+    this.trees.x = this.cameras.main.centerX + Math.sin(this.swayTime) * 5;
+    this.foilage.x = this.cameras.main.centerX + Math.sin(this.swayTime + 1) * 5;
+    this.clouds.x += 0.8;
+    if (this.clouds.x > this.cameras.main.width + 200) {
+      this.clouds.x = -200;
+    }
   }
 }
 
