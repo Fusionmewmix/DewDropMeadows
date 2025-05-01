@@ -65,7 +65,15 @@ class FishingSystem {
 
   this.scene.time.delayedCall(4000, () => {
     this.scene.input.keyboard.off('keydown', handler);
-    hideButtons();
+    this.scene.tweens.add({
+      targets: [this.scene.buttonQ, this.scene.buttonE],
+      alpha: 0,
+      duration: 150,
+      onComplete: () => {
+        this.scene.buttonQ.setVisible(false);
+        this.scene.buttonE.setVisible(false);
+      }
+    });
     const result = this.roll(this.points);
     if (result.type !== 'rock') this.collected.add(result.type);
     callback(result);
@@ -241,6 +249,7 @@ class NextScene extends Phaser.Scene {
   }
 
   create() {
+    this.fishingInProgress = false;
     this.fish = 0;
     const cx = this.cameras.main.centerX;
     const cy = this.cameras.main.centerY;
@@ -284,12 +293,14 @@ class NextScene extends Phaser.Scene {
       if (!this.settingsOpen) this.showSettings(this.outdoorSound);
     });
     
-    this.input.once('pointerdown', (pointer, gameObjects) => {
-      // If click hit a UI element, do NOT start fishing
-      if (gameObjects.length > 0) return;
+    this.input.on('pointerdown', (pointer, gameObjects) => {
+      if (gameObjects.length > 0 || this.fishingInProgress) return;
     
-      this.cursorTimer.remove();
-      this.cursor.destroy();
+      this.fishingInProgress = true;
+      if (this.cursor) {
+        this.cursorTimer.remove();
+        this.cursor.destroy();
+      }
       this.startFishingSequence();
     });
   }
