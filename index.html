@@ -72,6 +72,7 @@ class MainMenu extends Phaser.Scene {
     }
 
     this.add.image(960, 250, 'DDM_Logo').setDepth(1);
+
     const startButton = this.add.image(960, 500, 'Start_Button').setInteractive().setDepth(1);
     const quitButton = this.add.image(960, 620, 'Quit_Button').setInteractive().setDepth(1);
     const settingsButton = this.add.image(960, 740, 'Settings_Button').setInteractive().setScale(0.5).setDepth(1);
@@ -140,8 +141,149 @@ class MainMenu extends Phaser.Scene {
         b.y = Phaser.Math.Between(1100, 1500);
       }
     });
+ // Idle animation cycling
+    if (this.charIdle1 && this.charIdle1.visible && this.time.now - (this.lastIdleSwitch || 0) > 800) {
+      this.charIdle1.setVisible(this.idleToggle);
+      this.charIdle2.setVisible(!this.idleToggle);
+      this.idleToggle = !this.idleToggle;
+      this.lastIdleSwitch = this.time.now;
+}    
   }
 }
+
+class NextScene extends Phaser.Scene {
+  constructor() {
+    super('NextScene');
+  }
+
+  create() {
+    const cx = this.cameras.main.centerX;
+    const cy = this.cameras.main.centerY;
+
+    this.add.image(cx, cy, 'BG1').setDisplaySize(this.scale.width, this.scale.height).setDepth(1);
+    this.sun = this.add.image(cx + 400, cy - 250, 'BG4').setScale(0.8).setDepth(4); // lowered sun
+    this.tweens.add({
+      targets: this.sun,
+      alpha: { from: 1, to: 0.7 },
+      duration: 2000,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut'
+    });
+    this.clouds = this.add.image(cx, cy - 100, 'BG5').setDepth(5);
+    this.trees = this.add.image(cx, cy, 'BG2').setDepth(2);
+    this.add.image(cx, cy, 'BG3').setDepth(3);
+    this.foilage = this.add.image(cx, cy, 'BG6').setDepth(6);
+    this.add.image(cx, cy, 'BG7').setDepth(7);
+    this.add.image(cx, cy, 'BG8').setDepth(8);
+
+    // Character setup
+this.charThrow = this.add.image(470, 530, 'Char_throw').setScale(0.45).setDepth(9);
+this.charThrow2 = this.add.image(470, 530, 'Char_throw2').setScale(0.45).setDepth(9).setVisible(false);
+this.charIdle1 = this.add.image(470, 530, 'Char_idle1').setScale(0.45).setDepth(9).setVisible(false);
+this.charIdle2 = this.add.image(470, 530, 'Char_idle2').setScale(0.45).setDepth(9).setVisible(false);
+
+// Select icons
+this.select1 = this.add.image(960, 740, 'Select_1').setScale(0.3).setDepth(10);
+this.select2 = this.add.image(980, 740, 'Select_2').setScale(0.3).setDepth(10).setVisible(false);
+
+this.selectCycleTimer = this.time.addEvent({
+  delay: 500,
+  loop: true,
+  callback: () => {
+    this.select1.setVisible(!this.select1.visible);
+    this.select2.setVisible(!this.select2.visible);
+  }
+});
+
+this.input.once('pointerdown', () => {
+  // Clear select animation
+  this.select1.destroy();
+  this.select2.destroy();
+  this.selectCycleTimer.remove();
+
+  // Animate through throw2 to idle loop
+  this.charThrow.setVisible(false);
+  this.charThrow2.setVisible(true);
+
+  this.time.delayedCall(400, () => {
+    this.charThrow2.setVisible(false);
+    this.charIdle1.setVisible(true);
+    this.idleToggle = true;
+  });
+});
+
+    const char = this.add.image(cx - 500, cy + 70, 'Char_throw').setDepth(11).setScale(0.7);
+
+    const select1 = this.add.image(cx + 40, cy + 180, 'Select_1').setScale(0.3).setDepth(12).setAlpha(1);
+    const select2 = this.add.image(cx + 40, cy + 180, 'Select_2').setScale(0.3).setDepth(12).setAlpha(0);
+
+    this.cursorCycle = this.time.addEvent({
+      delay: 600,
+      loop: true,
+      callback: () => {
+        const is1 = select1.alpha > 0;
+        select1.setAlpha(is1 ? 0 : 1);
+        select2.setAlpha(is1 ? 1 : 0);
+      }
+    });
+
+    const zone = this.add.zone(cx + 40, cy + 180, 100, 100).setInteractive();
+    zone.on('pointerdown', () => {
+      this.cursorCycle.remove();
+      select1.destroy();
+      select2.destroy();
+
+      char.setTexture('Char_throw2');
+      this.time.delayedCall(500, () => {
+        let idleFrame = 1;
+        this.time.addEvent({
+          delay: 600,
+          loop: true,
+          callback: () => {
+            idleFrame = idleFrame === 1 ? 2 : 1;
+            char.setTexture(`Char_idle${idleFrame}`);
+          }
+        });
+      });
+    });
+
+    const book = this.add.image(0, 0, 'PG_Fish_Book').setOrigin(1, 1).setScale(0.5).setInteractive().setDepth(10);
+    const cart = this.add.image(0, 0, 'PG_Shopping_Cart').setOrigin(1, 1).setScale(0.5).setInteractive().setDepth(10);
+    cart.setPosition(this.cameras.main.width - 40, this.cameras.main.height - 40);
+    book.setPosition(cart.x - cart.displayWidth - 20, this.cameras.main.height - 40);
+
+    [book, cart].forEach(icon => {
+      icon.on('pointerdown', () => icon.setTint(0xcccccc));
+      icon.on('pointerup', () => icon.clearTint());
+    });
+  }
+
+  update(_, delta) {
+    this.swayTime = (this.swayTime || 0) + delta * 0.001;
+    this.trees.x = this.cameras.main.centerX + Math.sin(this.swayTime) * 5;
+    this.foilage.x = this.cameras.main.centerX + Math.sin(this.swayTime + 1) * 5;
+    this.clouds.x += 0.8;
+    if (this.clouds.x > this.cameras.main.width + 200) this.clouds.x = -200;
+  }
+}
+
+const config = {
+  type: Phaser.AUTO,
+  width: 1920,
+  height: 1080,
+  backgroundColor: '#000000',
+  scene: [MainMenu, NextScene],
+  scale: {
+    mode: Phaser.Scale.FIT,
+    autoCenter: Phaser.Scale.CENTER_BOTH
+  },
+  audio: {
+    disableWebAudio: false
+  }
+};
+
+new Phaser.Game(config);
 </script>
 </body>
 </html>
