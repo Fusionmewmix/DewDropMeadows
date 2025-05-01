@@ -10,7 +10,7 @@
   </style>
 </head>
 <body>
-<script>
+<script type="module">
 import { FishingSystem } from './FishingSystem.js';
 
 let fishing;
@@ -38,7 +38,7 @@ class MainMenu extends Phaser.Scene {
     });
 
     for (let i = 1; i <= 8; i++) {
-      this.load.image(BG${i}, Assets/Game%20Scene/BG${i}.png);
+      this.load.image(`BG${i}`, `Assets/Game%20Scene/BG${i}.png`);
     }
 
     this.load.image('PG_Fish_Book', 'Assets/Game%20Scene/PG_Fish_Book.png');
@@ -133,7 +133,7 @@ class MainMenu extends Phaser.Scene {
       const minX = 720, maxX = 1200;
       toggle.x = Phaser.Math.Clamp(pointer.x, minX, maxX);
       const percent = Math.round(((toggle.x - minX) / (maxX - minX)) * 100);
-      text.setText(${percent}%);
+      text.setText(`${percent}%`);
       this.music.setVolume(percent / 100);
     });
 
