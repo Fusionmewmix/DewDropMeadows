@@ -49,7 +49,7 @@ class MainMenu extends Phaser.Scene {
   create() {
     this.swayTime = 0;
     this.add.image(960, 540, 'MM_Background').setDepth(-3);
-    this.music = this.sound.add('Water_Sound', { loop: true, volume: 1 });
+    this.music = this.sound.add('Water_Sound', { loop: true, volume: 0.5 });
     this.music.play();
 
     const correctFrameOrder = [0, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2];
@@ -83,6 +83,7 @@ class MainMenu extends Phaser.Scene {
     startButton.on('pointerdown', () => startButton.setTint(0xcccccc));
     startButton.on('pointerup', () => {
       startButton.clearTint();
+      this.music.stop();
       this.scene.start('NextScene');
     });
 
@@ -176,9 +177,10 @@ class NextScene extends Phaser.Scene {
     });
 
     // Character positioning on bench
-    const charX = 380;
-    const charY = cy + 160;
-    this.char = this.add.image(charX, charY, 'Char_throw').setScale(0.45).setDepth(9);
+    const charX = 420;  // adjust to sit naturally on bench
+    const charY = cy + 60;  // lowered slightly to align body with seat
+    this.char = this.add.image(charX, charY, 'Char_throw').setScale(0.85).setDepth(9);
+
 
     // Smaller cursor cycling between Select_2 → Select_1 (reversed)
     this.cursor = this.add.image(cx + 180, cy + 180, 'Select_2').setScale(0.5).setDepth(10);
