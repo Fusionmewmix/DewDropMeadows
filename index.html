@@ -145,13 +145,13 @@ class NextScene extends Phaser.Scene {
       .setScale(0.2)
       .setInteractive()
       .setDepth(2);
-    book.setPosition(10, this.scale.gameSize.height - 10);
+    book.setPosition(10, this.cameras.main.height - 10);
     const cart = this.add.image(0, 0, 'PG_Shopping_Cart')
       .setOrigin(0, 1)
       .setScale(0.2)
       .setInteractive()
       .setDepth(2);
-    cart.setPosition(book.x + book.displayWidth + 20, this.scale.gameSize.height - 10);
+    cart.setPosition(book.x + book.displayWidth + 20, this.cameras.main.height - 10);
 
     [book, cart].forEach(icon => {
       // Disable hover scaling to keep consistent size
