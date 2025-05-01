@@ -31,9 +31,11 @@ class MainMenu extends Phaser.Scene {
       frameWidth: 1920,
       frameHeight: 1080
     });
+
     for (let i = 1; i <= 8; i++) {
       this.load.image(`BG${i}`, `Assets/Game%20Scene/BG${i}.png`);
     }
+
     this.load.image('PG_Fish_Book', 'Assets/Game%20Scene/PG_Fish_Book.png');
     this.load.image('PG_Shopping_Cart', 'Assets/Game%20Scene/PG_Shopping_Cart.png');
     this.load.image('Char_throw', 'Assets/Game%20Scene/Char_throw.png');
@@ -47,7 +49,6 @@ class MainMenu extends Phaser.Scene {
   create() {
     this.swayTime = 0;
     this.add.image(960, 540, 'MM_Background').setDepth(-3);
-
     this.music = this.sound.add('Water_Sound', { loop: true, volume: 1 });
     this.music.play();
 
@@ -58,6 +59,7 @@ class MainMenu extends Phaser.Scene {
       frameRate: 3,
       repeat: -1
     });
+
     this.bubble = this.add.sprite(960, 540, 'Bubble_Sheet').play('bubbleFloat').setDepth(-2);
 
     this.backgroundBubbles = [];
@@ -72,7 +74,6 @@ class MainMenu extends Phaser.Scene {
     }
 
     this.add.image(960, 250, 'DDM_Logo').setDepth(1);
-
     const startButton = this.add.image(960, 500, 'Start_Button').setInteractive().setDepth(1);
     const quitButton = this.add.image(960, 620, 'Quit_Button').setInteractive().setDepth(1);
     const settingsButton = this.add.image(960, 740, 'Settings_Button').setInteractive().setScale(0.5).setDepth(1);
@@ -141,13 +142,6 @@ class MainMenu extends Phaser.Scene {
         b.y = Phaser.Math.Between(1100, 1500);
       }
     });
- // Idle animation cycling
-    if (this.charIdle1 && this.charIdle1.visible && this.time.now - (this.lastIdleSwitch || 0) > 800) {
-      this.charIdle1.setVisible(this.idleToggle);
-      this.charIdle2.setVisible(!this.idleToggle);
-      this.idleToggle = !this.idleToggle;
-      this.lastIdleSwitch = this.time.now;
-}    
   }
 }
 
@@ -161,92 +155,15 @@ class NextScene extends Phaser.Scene {
     const cy = this.cameras.main.centerY;
 
     this.add.image(cx, cy, 'BG1').setDisplaySize(this.scale.width, this.scale.height).setDepth(1);
-    this.sun = this.add.image(cx + 400, cy - 250, 'BG4').setScale(0.8).setDepth(4); // lowered sun
-    this.tweens.add({
-      targets: this.sun,
-      alpha: { from: 1, to: 0.7 },
-      duration: 2000,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.easeInOut'
-    });
+    this.sun = this.add.image(cx + 400, cy - 200, 'BG4').setScale(0.8).setDepth(4);
+    this.tweens.add({ targets: this.sun, alpha: { from: 1, to: 0.7 }, duration: 2000, yoyo: true, repeat: -1 });
+
     this.clouds = this.add.image(cx, cy - 100, 'BG5').setDepth(5);
     this.trees = this.add.image(cx, cy, 'BG2').setDepth(2);
     this.add.image(cx, cy, 'BG3').setDepth(3);
     this.foilage = this.add.image(cx, cy, 'BG6').setDepth(6);
     this.add.image(cx, cy, 'BG7').setDepth(7);
     this.add.image(cx, cy, 'BG8').setDepth(8);
-
-    // Character setup
-this.charThrow = this.add.image(470, 530, 'Char_throw').setScale(0.45).setDepth(9);
-this.charThrow2 = this.add.image(470, 530, 'Char_throw2').setScale(0.45).setDepth(9).setVisible(false);
-this.charIdle1 = this.add.image(470, 530, 'Char_idle1').setScale(0.45).setDepth(9).setVisible(false);
-this.charIdle2 = this.add.image(470, 530, 'Char_idle2').setScale(0.45).setDepth(9).setVisible(false);
-
-// Select icons
-this.select1 = this.add.image(960, 740, 'Select_1').setScale(0.3).setDepth(10);
-this.select2 = this.add.image(980, 740, 'Select_2').setScale(0.3).setDepth(10).setVisible(false);
-
-this.selectCycleTimer = this.time.addEvent({
-  delay: 500,
-  loop: true,
-  callback: () => {
-    this.select1.setVisible(!this.select1.visible);
-    this.select2.setVisible(!this.select2.visible);
-  }
-});
-
-this.input.once('pointerdown', () => {
-  // Clear select animation
-  this.select1.destroy();
-  this.select2.destroy();
-  this.selectCycleTimer.remove();
-
-  // Animate through throw2 to idle loop
-  this.charThrow.setVisible(false);
-  this.charThrow2.setVisible(true);
-
-  this.time.delayedCall(400, () => {
-    this.charThrow2.setVisible(false);
-    this.charIdle1.setVisible(true);
-    this.idleToggle = true;
-  });
-});
-
-    const char = this.add.image(cx - 500, cy + 70, 'Char_throw').setDepth(11).setScale(0.7);
-
-    const select1 = this.add.image(cx + 40, cy + 180, 'Select_1').setScale(0.3).setDepth(12).setAlpha(1);
-    const select2 = this.add.image(cx + 40, cy + 180, 'Select_2').setScale(0.3).setDepth(12).setAlpha(0);
-
-    this.cursorCycle = this.time.addEvent({
-      delay: 600,
-      loop: true,
-      callback: () => {
-        const is1 = select1.alpha > 0;
-        select1.setAlpha(is1 ? 0 : 1);
-        select2.setAlpha(is1 ? 1 : 0);
-      }
-    });
-
-    const zone = this.add.zone(cx + 40, cy + 180, 100, 100).setInteractive();
-    zone.on('pointerdown', () => {
-      this.cursorCycle.remove();
-      select1.destroy();
-      select2.destroy();
-
-      char.setTexture('Char_throw2');
-      this.time.delayedCall(500, () => {
-        let idleFrame = 1;
-        this.time.addEvent({
-          delay: 600,
-          loop: true,
-          callback: () => {
-            idleFrame = idleFrame === 1 ? 2 : 1;
-            char.setTexture(`Char_idle${idleFrame}`);
-          }
-        });
-      });
-    });
 
     const book = this.add.image(0, 0, 'PG_Fish_Book').setOrigin(1, 1).setScale(0.5).setInteractive().setDepth(10);
     const cart = this.add.image(0, 0, 'PG_Shopping_Cart').setOrigin(1, 1).setScale(0.5).setInteractive().setDepth(10);
@@ -256,6 +173,42 @@ this.input.once('pointerdown', () => {
     [book, cart].forEach(icon => {
       icon.on('pointerdown', () => icon.setTint(0xcccccc));
       icon.on('pointerup', () => icon.clearTint());
+    });
+
+    // Character positioning on bench
+    const charX = 380;
+    const charY = cy + 160;
+    this.char = this.add.image(charX, charY, 'Char_throw').setScale(0.45).setDepth(9);
+
+    // Smaller cursor cycling between Select_2 → Select_1 (reversed)
+    this.cursor = this.add.image(cx + 180, cy + 180, 'Select_2').setScale(0.5).setDepth(10);
+    this.cursorFrames = ['Select_2', 'Select_1'];
+    this.cursorFrameIndex = 0;
+    this.cursorTimer = this.time.addEvent({
+      delay: 500,
+      callback: () => {
+        this.cursorFrameIndex = (this.cursorFrameIndex + 1) % this.cursorFrames.length;
+        this.cursor.setTexture(this.cursorFrames[this.cursorFrameIndex]);
+      },
+      loop: true
+    });
+
+    this.input.once('pointerdown', () => {
+      this.cursor.destroy();
+      this.char.setTexture('Char_throw2');
+
+      this.time.delayedCall(500, () => {
+        this.idleState = 0;
+        this.char.setTexture('Char_idle1');
+        this.time.addEvent({
+          delay: 800,
+          callback: () => {
+            this.idleState = 1 - this.idleState;
+            this.char.setTexture(this.idleState === 0 ? 'Char_idle1' : 'Char_idle2');
+          },
+          loop: true
+        });
+      });
     });
   }
 
