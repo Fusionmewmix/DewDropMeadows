@@ -49,7 +49,7 @@ class MainMenu extends Phaser.Scene {
     this.anims.create({
       key: 'bubbleFloat',
       frames: correctFrameOrder.map(i => ({ key: 'Bubble_Sheet', frame: i })),
-      frameRate: 3,
+      frameRate: 5,
       repeat: -1
     });
     this.bubble = this.add.sprite(960, 540, 'Bubble_Sheet').play('bubbleFloat').setDepth(-2);
@@ -182,7 +182,7 @@ book.setPosition(cart.x - cart.displayWidth - 20, this.cameras.main.height - 40)
   update(_, delta) {
     this.swayTime = (this.swayTime || 0) + delta * 0.001;
     this.trees.x = this.cameras.main.centerX + Math.sin(this.swayTime) * 5;
-    this.foilage.x = this.cameras.main.centerX + Math.sin(this.swayTime + 1) * 5;
+    this.foilage.x = this.cameras.main.centerX + Math.sin(this.swayTime + 3) * 5;
     this.clouds.x += 0.8;
     if (this.clouds.x > this.cameras.main.width + 200) this.clouds.x = -200;
   }
