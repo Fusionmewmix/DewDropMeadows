@@ -1,7 +1,3 @@
-import { FishingSystem } from './FishingSystem.js';
-
-let fishing;
-
 class MainMenu extends Phaser.Scene {
   constructor() {
     super('MainMenu');
