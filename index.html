@@ -196,17 +196,22 @@ class NextScene extends Phaser.Scene {
     });
 
     this.input.once('pointerdown', () => {
-      this.cursor.destroy();
+      if (this.cursor) this.cursor.destroy(); // Remove the cursor
+
       this.char.setTexture('Char_throw2');
 
-      this.time.delayedCall(500, () => {
+  // Wait 300ms before starting idle loop (instead of full 500ms delay)
+      this.time.delayedCall(300, () => {
         this.idleState = 0;
         this.char.setTexture('Char_idle1');
-        this.time.addEvent({
-          delay: 800,
+
+    // Start idle loop that doesn't block input or update
+        this.idleTimer = this.time.addEvent({
+          delay: 600,
           callback: () => {
             this.idleState = 1 - this.idleState;
-            this.char.setTexture(this.idleState === 0 ? 'Char_idle1' : 'Char_idle2');
+            const next = this.idleState === 0 ? 'Char_idle1' : 'Char_idle2';
+            this.char.setTexture(next);
           },
           loop: true
         });
@@ -215,11 +220,12 @@ class NextScene extends Phaser.Scene {
   }
 
   update(_, delta) {
-    this.swayTime = (this.swayTime || 0) + delta * 0.001;
-    this.trees.x = this.cameras.main.centerX + Math.sin(this.swayTime) * 5;
-    this.foilage.x = this.cameras.main.centerX + Math.sin(this.swayTime + 1) * 5;
-    this.clouds.x += 0.8;
-    if (this.clouds.x > this.cameras.main.width + 200) this.clouds.x = -200;
+  this.swayTime = (this.swayTime || 0) + delta * 0.001;
+  this.trees.x = this.cameras.main.centerX + Math.sin(this.swayTime) * 5;
+  this.foilage.x = this.cameras.main.centerX + Math.sin(this.swayTime + 1) * 5;
+  this.clouds.x += 0.8;
+  if (this.clouds.x > this.cameras.main.width + 200) {
+    this.clouds.x = -200;
   }
 }
 
