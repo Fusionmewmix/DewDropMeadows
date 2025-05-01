@@ -149,7 +149,7 @@ class NextScene extends Phaser.Scene {
 
   // Layered Background Setup
   this.add.image(cx, cy, 'BG1').setDisplaySize(this.scale.width, this.scale.height).setDepth(0); // Sky
-  this.sun = this.add.image(cx + 400, cy - 300, 'BG4').setDepth(2); // Sun - repositioned into view
+  this.sun = this.add.image(cx + 600, cy - 380, 'BG4').setDepth(2); // Sun - repositioned into view
   this.tweens.add({
   targets: this.sun,
   alpha: { from: 1, to: 0.7 },
@@ -167,11 +167,11 @@ class NextScene extends Phaser.Scene {
 
   // Interactive Icons (resized + spaced)
  // Interactive Icons (resized + spaced)
-const book = this.add.image(0, 0, 'PG_Fish_Book').setOrigin(0, 1).setScale(0.45).setInteractive().setDepth(10);
-const cart = this.add.image(0, 0, 'PG_Shopping_Cart').setOrigin(0, 1).setScale(0.45).setInteractive().setDepth(10);
+const book = this.add.image(0, 0, 'PG_Fish_Book').setOrigin(1, 1).setScale(0.5).setInteractive().setDepth(10);
+const cart = this.add.image(0, 0, 'PG_Shopping_Cart').setOrigin(1, 1).setScale(0.5).setInteractive().setDepth(10);
 
-book.setPosition(40, this.cameras.main.height - 40);
-cart.setPosition(book.x + book.displayWidth + 40, this.cameras.main.height - 40);
+cart.setPosition(this.cameras.main.width - 40, this.cameras.main.height - 40);
+book.setPosition(cart.x - cart.displayWidth - 20, this.cameras.main.height - 40);
 
 [book, cart].forEach(icon => {
   icon.on('pointerdown', () => icon.setTint(0xcccccc));
