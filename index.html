@@ -207,6 +207,7 @@ class NextScene extends Phaser.Scene {
   }
 
   create() {
+    this.fish = 0;
     const cx = this.cameras.main.centerX;
     const cy = this.cameras.main.centerY;
 
@@ -248,11 +249,11 @@ class NextScene extends Phaser.Scene {
     gear.on('pointerdown', () => {
       if (!this.settingsOpen) this.showSettings(this.outdoorSound);
     });
-
-   this.input.once('pointerdown', () => {
-    this.cursorTimer.remove();
-    this.cursor.destroy();
-    this.startFishingSequence();
+    
+    this.input.once('pointerdown', () => {
+      this.cursorTimer.remove();
+      this.cursor.destroy();
+      this.startFishingSequence();
     });
   }
 
@@ -291,9 +292,17 @@ beginIdleAndFishingLogic() {
   fishing.startFishing((result) => {
     idleLoop.remove();
     this.char.setTexture('Char_pull');
-
+  
     this.time.delayedCall(600, () => {
+      // Update fish variable
       if (result.type === 'rock') {
+        this.fish *= -1;
+      } else {
+        this.fish = Math.abs(this.fish) || 1;
+      }
+  
+      // Decide outcome
+      if (this.fish < 0) {
         this.playRockBreak();
       } else {
         this.char.setTexture('Char_Fish');
@@ -302,6 +311,11 @@ beginIdleAndFishingLogic() {
           if (fishing.hasWon()) {
             console.log("🎉 You’ve caught all fish types!");
           }
+  
+          // Rebind cast click
+          this.input.once('pointerdown', () => {
+            this.startFishingSequence();
+          });
         });
       }
     });
@@ -323,6 +337,13 @@ beginIdleAndFishingLogic() {
     rockLoop.remove();
     this.char.setTexture('Char_Start');
     this.input.once('pointerdown', () => {
+        delay: 500,
+        callback: () => {
+          this.cursorFrameIndex = (this.cursorFrameIndex + 1) % this.cursorFrames.length;
+          this.cursor.setTexture(this.cursorFrames[this.cursorFrameIndex]);
+        },
+        loop: true
+      });
       this.startFishingSequence();
     });
   });
