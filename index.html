@@ -138,7 +138,7 @@ class NextScene extends Phaser.Scene {
   }
 
   create() {
-    this.add.image(960, 540, 'PG_Background');
+    this.add.image(0, 0, 'PG_Background').setOrigin(0).setDisplaySize(this.sys.game.config.width, this.sys.game.config.height);
 
     const book = this.add.image(100, 960, 'PG_Fish_Book').setInteractive().setOrigin(0.5, 1).setDepth(2);
     const cart = this.add.image(220, 960, 'PG_Shopping_Cart').setInteractive().setOrigin(0.5, 1).setDepth(2);
