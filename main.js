@@ -77,9 +77,11 @@ class MainMenu extends Phaser.Scene {
         duration: 600,
         ease: 'Quad.easeInOut'
       });
+      this.cameras.main.once('camerafadeoutcomplete', () => {
+        this.music.stop();
+        this.scene.start('NextScene');
+      });
       this.cameras.main.fadeOut(1000, 255, 255, 255);
-      this.music.stop();
-      this.time.delayedCall(1000, () => this.scene.start('NextScene'));
     });
 
     quitButton.on('pointerover', () => quitButton.setScale(1.05));
@@ -150,6 +152,18 @@ class NextScene extends Phaser.Scene {
 
     const cx = this.cameras.main.centerX;
     const cy = this.cameras.main.centerY;
+    const back = this.add.text(40, 40, 'Back', {
+      fontSize: '32px',
+      color: '#ffffff',
+      backgroundColor: '#000000',
+      padding: { x: 10, y: 5 }
+    })
+    .setInteractive()
+    .setDepth(20);
+    
+    back.on('pointerup', () => {
+      this.scene.start('MainMenu');
+    });
 
     this.add.image(cx, cy, 'BG1').setDisplaySize(1920, 1080).setDepth(1);
     this.sun = this.add.image(cx, cy, 'BG4').setScale(0.8).setDepth(4);
