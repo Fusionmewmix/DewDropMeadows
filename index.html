@@ -222,17 +222,6 @@ class NextScene extends Phaser.Scene {
     this.add.image(cx, cy, 'BG8').setDepth(8);
 
     this.char = this.add.image(cx, cy, 'Char_Start').setDepth(9).setScale(1);
-    this.cursor = this.add.image(580, 790, 'Select_2').setScale(0.5).setDepth(10);
-    this.cursorFrames = ['Select_2', 'Select_1'];
-    this.cursorFrameIndex = 0;
-    this.cursorTimer = this.time.addEvent({
-      delay: 500,
-      callback: () => {
-        this.cursorFrameIndex = (this.cursorFrameIndex + 1) % this.cursorFrames.length;
-        this.cursor.setTexture(this.cursorFrames[this.cursorFrameIndex]);
-      },
-      loop: true
-    });
 
     const book = this.add.image(0, 0, 'PG_Fish_Book').setOrigin(1, 1).setScale(0.5).setInteractive().setDepth(10);
     const cart = this.add.image(0, 0, 'PG_Shopping_Cart').setOrigin(1, 1).setScale(0.5).setInteractive().setDepth(10);
