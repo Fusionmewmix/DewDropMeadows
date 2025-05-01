@@ -336,15 +336,9 @@ beginIdleAndFishingLogic() {
   this.time.delayedCall(2000, () => {
     rockLoop.remove();
     this.char.setTexture('Char_Start');
+    
     this.input.once('pointerdown', () => {
-        delay: 500,
-        callback: () => {
-          this.cursorFrameIndex = (this.cursorFrameIndex + 1) % this.cursorFrames.length;
-          this.cursor.setTexture(this.cursorFrames[this.cursorFrameIndex]);
-        },
-        loop: true
-      });
-      this.startFishingSequence();
+      this.startFishingSequence(); // restart the fishing cycle
     });
   });
 }
