@@ -144,30 +144,20 @@ class NextScene extends Phaser.Scene {
   }
 
   create() {
-    const centerX = this.cameras.main.width / 2;
-    const centerY = this.cameras.main.height / 2;
+    const cx = this.cameras.main.centerX;
+    const cy = this.cameras.main.centerY;
+    this.add.image(cx, cy, 'BG1').setDisplaySize(this.scale.width, this.scale.height).setDepth(0);
+    this.sun = this.add.image(cx + 500, cy - 200, 'BG4').setDepth(2);
+    this.clouds = this.add.image(cx, cy - 80, 'BG5').setDepth(3);
+    this.trees = this.add.image(cx, cy, 'BG2').setDepth(1);
+    this.add.image(cx, cy, 'BG3').setDepth(4);
+    this.foilage = this.add.image(cx, cy, 'BG6').setDepth(5);
+    this.add.image(cx, cy, 'BG7').setDepth(6);
+    this.add.image(cx, cy, 'BG8').setDepth(7);
 
-    this.add.image(centerX, centerY, 'BG1').setOrigin(0.5).setDisplaySize(this.scale.width, this.scale.height);
-    this.sun = this.add.image(centerX + 400, centerY - 250, 'BG4').setOrigin(0.5).setDepth(2);
-    this.clouds = this.add.image(centerX, centerY - 180, 'BG5').setOrigin(0.5).setDepth(3);
-    this.trees = this.add.image(centerX, centerY, 'BG2').setOrigin(0.5).setDepth(1);
-    this.foilage = this.add.image(centerX, centerY, 'BG6').setOrigin(0.5).setDepth(4);
-    this.add.image(centerX, centerY, 'BG3').setOrigin(0.5).setDepth(5);
-    this.add.image(centerX, centerY, 'BG8').setOrigin(0.5).setDepth(6);
-    this.add.image(centerX, centerY, 'BG7').setOrigin(0.5).setDepth(7);
-
-    const book = this.add.image(0, 0, 'PG_Fish_Book')
-      .setOrigin(0, 1)
-      .setScale(0.2)
-      .setInteractive()
-      .setDepth(10);
+    const book = this.add.image(0, 0, 'PG_Fish_Book').setOrigin(0, 1).setScale(0.2).setInteractive().setDepth(10);
+    const cart = this.add.image(0, 0, 'PG_Shopping_Cart').setOrigin(0, 1).setScale(0.2).setInteractive().setDepth(10);
     book.setPosition(10, this.cameras.main.height - 10);
-
-    const cart = this.add.image(0, 0, 'PG_Shopping_Cart')
-      .setOrigin(0, 1)
-      .setScale(0.2)
-      .setInteractive()
-      .setDepth(10);
     cart.setPosition(book.x + book.displayWidth + 20, this.cameras.main.height - 10);
 
     [book, cart].forEach(icon => {
@@ -180,7 +170,7 @@ class NextScene extends Phaser.Scene {
     this.swayTime = (this.swayTime || 0) + delta * 0.001;
     this.trees.x = this.cameras.main.centerX + Math.sin(this.swayTime) * 5;
     this.foilage.x = this.cameras.main.centerX + Math.sin(this.swayTime + 1) * 5;
-    this.clouds.x += 0.25;
+    this.clouds.x += 0.8;
     if (this.clouds.x > this.cameras.main.width + 200) this.clouds.x = -200;
   }
 }
