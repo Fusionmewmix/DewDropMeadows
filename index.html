@@ -54,14 +54,104 @@ class MainMenu extends Phaser.Scene {
     this.load.image('Select_2', 'Assets/Game%20Scene/Select_2.png');
   }
 
-  create() {
-    // [Main menu setup remains unchanged...]
+ create() {
+    this.swayTime = 0;
+    this.add.image(960, 540, 'MM_Background').setDepth(-3);
     this.music = this.sound.add('Water_Sound', { loop: true, volume: 0.5 });
     this.music.play();
-    // ... your create() code here ...
+
+    const correctFrameOrder = [0, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2];
+    this.anims.create({
+      key: 'bubbleFloat',
+      frames: correctFrameOrder.map(i => ({ key: 'Bubble_Sheet', frame: i })),
+      frameRate: 3,
+      repeat: -1
+    });
+
+    this.bubble = this.add.sprite(960, 540, 'Bubble_Sheet').play('bubbleFloat').setDepth(-2);
+
+    this.backgroundBubbles = [];
+    for (let i = 0; i < 15; i++) {
+      const g = this.add.graphics();
+      g.lineStyle(4, 0xFFFFFF, 0.3);
+      g.strokeCircle(0, 0, Phaser.Math.Between(5, 15));
+      const container = this.add.container(Phaser.Math.Between(0, 1920), Phaser.Math.Between(1080, 2000), [g]);
+      container.speed = Phaser.Math.FloatBetween(0.8, 1.4);
+      container.setDepth(-1);
+      this.backgroundBubbles.push(container);
+    }
+
+    this.add.image(960, 250, 'DDM_Logo').setDepth(1);
+    const startButton = this.add.image(960, 500, 'Start_Button').setInteractive().setDepth(1);
+    const quitButton = this.add.image(960, 620, 'Quit_Button').setInteractive().setDepth(1);
+    const settingsButton = this.add.image(960, 740, 'Settings_Button').setInteractive().setScale(0.5).setDepth(1);
+
+    startButton.on('pointerover', () => startButton.setScale(1.05));
+    startButton.on('pointerout', () => startButton.setScale(1));
+    startButton.on('pointerdown', () => startButton.setTint(0xcccccc));
+    startButton.on('pointerup', () => {
+      startButton.clearTint();
+      this.music.stop();
+      this.scene.start('NextScene');
+    });
+
+    quitButton.on('pointerover', () => quitButton.setScale(1.05));
+    quitButton.on('pointerout', () => quitButton.setScale(1));
+    quitButton.on('pointerdown', () => quitButton.setTint(0xcccccc));
+    quitButton.on('pointerup', () => quitButton.clearTint());
+
+    settingsButton.on('pointerover', () => settingsButton.setScale(0.55));
+    settingsButton.on('pointerout', () => settingsButton.setScale(0.5));
+    settingsButton.on('pointerdown', () => settingsButton.setTint(0xcccccc));
+    settingsButton.on('pointerup', () => {
+      settingsButton.clearTint();
+      this.showSettings();
+    });
+
+    const vignette = this.add.graphics().setDepth(0);
+    vignette.fillStyle(0x032e3e, 0.4);
+    vignette.fillRect(0, 0, 1920, 1080);
+    this.tweens.add({ targets: vignette, alpha: { from: 0.2, to: 0.4 }, duration: 4000, yoyo: true, repeat: -1 });
   }
 
-  // showSettings and update functions remain unchanged
+  showSettings() {
+    const bg = this.add.image(960, 540, 'UI_Short').setDepth(10);
+    const bar = this.add.image(960, 550, 'Sound_Bar').setDepth(11);
+    const toggle = this.add.image(1200, 550, 'Sound_Toggle').setInteractive().setDepth(12);
+    const close = this.add.image(960, 670, 'Settings_Close').setInteractive().setDepth(12).setScale(0.5);
+    const text = this.add.text(960, 600, '100%', { fontSize: '32px', color: '#000' }).setOrigin(0.5).setDepth(12);
+
+    let isDragging = false;
+    toggle.on('pointerdown', () => isDragging = true);
+    this.input.on('pointerup', () => isDragging = false);
+    this.input.on('pointermove', (pointer) => {
+      if (!isDragging) return;
+      const minX = 720;
+      const maxX = 1200;
+      toggle.x = Phaser.Math.Clamp(pointer.x, minX, maxX);
+      const percent = Math.round(((toggle.x - minX) / (maxX - minX)) * 100);
+      text.setText(`${percent}%`);
+      this.music.setVolume(percent / 100);
+    });
+
+    close.on('pointerup', () => {
+      bg.destroy(); bar.destroy(); toggle.destroy(); close.destroy(); text.destroy();
+    });
+  }
+
+  update(_, delta) {
+    this.swayTime += delta * 0.001;
+    this.bubble.x = 960 + Math.sin(this.swayTime) * 30;
+    const scale = 1 + Math.sin(this.swayTime * 1.5) * 0.01;
+    this.bubble.setScale(scale);
+    this.backgroundBubbles.forEach(b => {
+      b.y -= b.speed;
+      if (b.y < -50) {
+        b.x = Phaser.Math.Between(0, 1920);
+        b.y = Phaser.Math.Between(1100, 1500);
+      }
+    });
+  }
 }
 
 class NextScene extends Phaser.Scene {
