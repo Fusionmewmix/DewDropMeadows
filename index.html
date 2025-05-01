@@ -39,6 +39,7 @@ class FishingSystem {
       this.scene.input.keyboard.off('keydown', handler);
       const result = this.roll(this.points);
       if (result.type !== 'rock') this.collected.add(result.type);
+      console.log("Fishing result:", result.type);
       callback(result);
     });
   }
@@ -321,6 +322,18 @@ beginIdleAndFishingLogic() {
   this.time.delayedCall(2000, () => {
     rockLoop.remove();
     this.char.setTexture('Char_Start');
+    this.input.once('pointerdown', () => {
+      this.cursor = this.add.image(580, 790, 'Select_2').setScale(0.5).setDepth(10);
+      this.cursorTimer = this.time.addEvent({
+        delay: 500,
+        callback: () => {
+          this.cursorFrameIndex = (this.cursorFrameIndex + 1) % this.cursorFrames.length;
+          this.cursor.setTexture(this.cursorFrames[this.cursorFrameIndex]);
+        },
+        loop: true
+      });
+      this.startFishingSequence();
+    });
   });
 }
 
