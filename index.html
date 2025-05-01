@@ -268,6 +268,7 @@ class NextScene extends Phaser.Scene {
     const cx = this.cameras.main.centerX;
     const cy = this.cameras.main.centerY;
     this.bgGroup = this.add.group();
+    this.trees = this.add.image(cx, cy, 'BG2').setDepth(2);
 
 const bgNames = ['BG1', 'BG2', 'BG3', 'BG4', 'BG5', 'BG6', 'BG7', 'BG8'];
 bgNames.forEach((name, i) => {
