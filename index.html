@@ -152,7 +152,9 @@ class NextScene extends Phaser.Scene {
       .setDepth(2);
 
     [book, cart].forEach(icon => {
-      icon.on('pointerover', () => icon.setScale(1.05));
+      // Disable hover scaling to keep consistent size
+      icon.on('pointerover', () => {});
+      icon.on('pointerout', () => {});
       icon.on('pointerout', () => icon.setScale(1));
       icon.on('pointerdown', () => icon.setTint(0xcccccc));
       icon.on('pointerup', () => icon.clearTint());
