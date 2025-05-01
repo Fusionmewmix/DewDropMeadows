@@ -46,6 +46,19 @@
 
   let fishing;
 
+preload() {
+  this.load.image('BG1', 'Assets/Game Scene/BG1.png');
+  this.load.image('Char_Start', 'Assets/Game%20Scene/Char_Start.png');
+  this.load.image('Char_throw', 'Assets/Game%20Scene/Char_throw.png');
+  this.load.image('Char_throw2', 'Assets/Game%20Scene/Char_throw2.png');
+  this.load.image('Char_idle1', 'Assets/Game%20Scene/Char_idle1.png');
+  this.load.image('Char_idle2', 'Assets/Game%20Scene/Char_idle2.png');
+  this.load.image('Char_pull', 'Assets/Game%20Scene/Char_pull.png');
+  this.load.image('Char_Fish', 'Assets/Game%20Scene/Char_Fish.png');
+  this.load.image('Char_Broke1', 'Assets/Game%20Scene/Char_Broke1.png');
+  this.load.image('Char_Broke2', 'Assets/Game%20Scene/Char_Broke2.png');
+}
+
   class NextScene extends Phaser.Scene {
     constructor() {
       super('NextScene');
