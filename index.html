@@ -22,18 +22,56 @@ class FishingSystem {
   }
 
   startFishing(callback) {
-    this.points = 0;
-    this.successInputs = [];
-    const keys = this.scene.input.keyboard.addKeys('Q,E');
-    const handler = (event) => {
-      const key = event.key.toUpperCase();
-      const last = this.successInputs[this.successInputs.length - 1];
-      if ((key === 'Q' || key === 'E') && key !== last) {
-        this.successInputs.push(key);
-        this.points += 1;
-      }
-    };
+  this.points = 0;
+  this.successInputs = [];
+  const keys = this.scene.input.keyboard.addKeys('Q,E');
+  let expected = 'Q';
 
+  const showButton = (key) => {
+    this.scene.buttonQ.setVisible(key === 'Q').setAlpha(1);
+    this.scene.buttonE.setVisible(key === 'E').setAlpha(1);
+  };
+
+  const hideButtons = () => {
+    this.scene.buttonQ.setVisible(false);
+    this.scene.buttonE.setVisible(false);
+  };
+
+  showButton(expected);
+
+  const handler = (event) => {
+    const key = event.key.toUpperCase();
+    const last = this.successInputs[this.successInputs.length - 1];
+    if ((key === 'Q' || key === 'E') && key !== last && key === expected) {
+      this.successInputs.push(key);
+      this.points += 1;
+
+      // Fade out current button quickly
+      const btn = key === 'Q' ? this.scene.buttonQ : this.scene.buttonE;
+      this.scene.tweens.add({
+        targets: btn,
+        alpha: 0,
+        duration: 150,
+        onComplete: () => {
+          btn.setVisible(false);
+          expected = expected === 'Q' ? 'E' : 'Q';
+          showButton(expected);
+        }
+      });
+    }
+  };
+
+  this.scene.input.keyboard.on('keydown', handler);
+
+  this.scene.time.delayedCall(4000, () => {
+    this.scene.input.keyboard.off('keydown', handler);
+    hideButtons();
+    const result = this.roll(this.points);
+    if (result.type !== 'rock') this.collected.add(result.type);
+    callback(result);
+  });
+}
+  
     this.scene.input.keyboard.on('keydown', handler);
     this.scene.time.delayedCall(4000, () => {
       this.scene.input.keyboard.off('keydown', handler);
@@ -98,6 +136,8 @@ class MainMenu extends Phaser.Scene {
     this.load.image('Char_Broke2', 'Assets/Game%20Scene/Char_Broke2.png');
     this.load.image('Char_Fish', 'Assets/Game%20Scene/Char_Fish.png');
     this.load.image('Char_pull', 'Assets/Game%20Scene/Char_pull.png');
+    this.load.image('Button_Q', 'Assets/Game%20Scene/Button_Q.png');
+    this.load.image('Button_E', 'Assets/Game%20Scene/Button_E.png');
   }
 
   create() {
@@ -254,7 +294,10 @@ class NextScene extends Phaser.Scene {
       if (!this.settingsOpen) this.showSettings(this.outdoorSound);
     });
     
-    this.input.once('pointerdown', () => {
+    this.input.once('pointerdown', (pointer, gameObjects) => {
+      // If click hit a UI element, do NOT start fishing
+      if (gameObjects.length > 0) return;
+    
       this.cursorTimer.remove();
       this.cursor.destroy();
       this.startFishingSequence();
@@ -291,6 +334,9 @@ beginIdleAndFishingLogic() {
     },
     loop: true
   });
+
+  this.buttonQ = this.add.image(750, 570, 'Button_Q').setDepth(12).setVisible(false).setAlpha(0);
+  this.buttonE = this.add.image(850, 570, 'Button_E').setDepth(12).setVisible(false).setAlpha(0);
 
   fishing = new FishingSystem(this); // Instantiate
   fishing.startFishing((result) => {
