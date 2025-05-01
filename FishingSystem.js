@@ -11,7 +11,6 @@ export class FishingSystem {
   startFishing(callback) {
     this.points = 0;
     this.successInputs = [];
-    const keys = this.scene.input.keyboard.addKeys('Q,E');
     const handler = (event) => {
       const key = event.key.toUpperCase();
       const last = this.successInputs[this.successInputs.length - 1];
@@ -39,6 +38,10 @@ export class FishingSystem {
   }
 
   hasWon() {
-    return this.collected.has('fish1') && this.collected.has('fish2') && this.collected.has('fish3');
+    return (
+      this.collected.has('fish1') &&
+      this.collected.has('fish2') &&
+      this.collected.has('fish3')
+    );
   }
 }
