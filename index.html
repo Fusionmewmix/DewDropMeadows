@@ -148,8 +148,8 @@ class NextScene extends Phaser.Scene {
   const cy = this.cameras.main.centerY;
 
   // Layered Background Setup
-  this.add.image(cx, cy, 'BG1').setDisplaySize(this.scale.width, this.scale.height).setDepth(0); // Sky
-  this.sun = this.add.image(cx - 500, cy - 400, 'BG4').setDepth(2); // Moved sun to upper left
+  this.add.image(cx, cy, 'BG1').setDisplaySize(this.scale.width, this.scale.height).setDepth(1); // Sky
+  this.sun = this.add.image(cx - 500, cy - 400, 'BG4').setDepth(4); // Moved sun to upper left
   this.tweens.add({
   targets: this.sun,
   alpha: { from: 1, to: 0.7 },
@@ -158,12 +158,12 @@ class NextScene extends Phaser.Scene {
   repeat: -1,
   ease: 'Sine.easeInOut'
 });
-  this.clouds = this.add.image(cx, cy - 100, 'BG5').setDepth(3); // Clouds - lowered
-  this.trees = this.add.image(cx, cy, 'BG2').setDepth(1); // Trees (swaying)
-  this.add.image(cx, cy, 'BG3').setDepth(4); // Terrain
-  this.foilage = this.add.image(cx, cy, 'BG6').setDepth(5); // Foreground bushes (swaying)
-  this.add.image(cx, cy, 'BG7').setDepth(6); // Pond
-  this.add.image(cx, cy, 'BG8').setDepth(7); // Bench & Sign
+  this.clouds = this.add.image(cx, cy - 100, 'BG5').setDepth(5); // Clouds - lowered
+  this.trees = this.add.image(cx, cy, 'BG2').setDepth(2); // Trees (swaying)
+  this.add.image(cx, cy, 'BG3').setDepth(3); // Terrain
+  this.foilage = this.add.image(cx, cy, 'BG6').setDepth(6); // Foreground bushes (swaying)
+  this.add.image(cx, cy, 'BG7').setDepth(7); // Pond
+  this.add.image(cx, cy, 'BG8').setDepth(8); // Bench & Sign
 
   // Interactive Icons (resized + spaced)
  // Interactive Icons (resized + spaced)
