@@ -248,27 +248,81 @@ class NextScene extends Phaser.Scene {
       if (!this.settingsOpen) this.showSettings(this.outdoorSound);
     });
 
-    this.input.once('pointerdown', () => {
-      this.cursorTimer.remove();
-      this.cursor.destroy();
-      this.char.setTexture('Char_throw');
-      this.time.delayedCall(300, () => {
-        this.char.setTexture('Char_throw2');
-        this.time.delayedCall(300, () => {
-          this.char.setTexture('Char_idle1');
-          this.idleState = 0;
-          this.time.addEvent({
-            delay: 600,
-            callback: () => {
-              this.idleState = 1 - this.idleState;
-              this.char.setTexture(this.idleState === 0 ? 'Char_idle1' : 'Char_idle2');
-            },
-            loop: true
-          });
-        });
-      });
+   this.input.once('pointerdown', () => {
+    this.cursorTimer.remove();
+    this.cursor.destroy();
+    this.startFishingSequence();
     });
   }
+
+  startFishingSequence() {
+  const sequence = [
+    { frame: 'Char_throw', delay: 300 },
+    { frame: 'Char_throw2', delay: 300 },
+    { frame: 'Char_idle1', delay: 0 }
+  ];
+
+  let index = 0;
+  const playNext = () => {
+    if (index < sequence.length) {
+      this.char.setTexture(sequence[index].frame);
+      this.time.delayedCall(sequence[index].delay, playNext);
+      index++;
+    } else {
+      this.beginIdleAndFishingLogic();
+    }
+  };
+  playNext();
+}
+
+beginIdleAndFishingLogic() {
+  this.idleState = 0;
+  const idleLoop = this.time.addEvent({
+    delay: 600,
+    callback: () => {
+      this.idleState = 1 - this.idleState;
+      this.char.setTexture(this.idleState === 0 ? 'Char_idle1' : 'Char_idle2');
+    },
+    loop: true
+  });
+
+  fishing = new FishingSystem(this); // Instantiate
+  fishing.startFishing((result) => {
+    idleLoop.remove();
+    this.char.setTexture('Char_pull');
+
+    this.time.delayedCall(600, () => {
+      if (result.type === 'rock') {
+        this.playRockBreak();
+      } else {
+        this.char.setTexture('Char_Fish');
+        this.time.delayedCall(1000, () => {
+          this.char.setTexture('Char_Start');
+          if (fishing.hasWon()) {
+            console.log("🎉 You’ve caught all fish types!");
+          }
+        });
+      }
+    });
+  });
+}
+
+  playRockBreak() {
+  let toggle = false;
+  const rockLoop = this.time.addEvent({
+    delay: 400,
+    callback: () => {
+      this.char.setTexture(toggle ? 'Char_Broke1' : 'Char_Broke2');
+      toggle = !toggle;
+    },
+    repeat: 4
+  });
+
+  this.time.delayedCall(2000, () => {
+    rockLoop.remove();
+    this.char.setTexture('Char_Start');
+  });
+}
 
   showSettings(audioTarget) {
     if (this.settingsOpen) return;
