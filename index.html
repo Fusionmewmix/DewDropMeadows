@@ -36,6 +36,13 @@ class MainMenu extends Phaser.Scene {
     }
     this.load.image('PG_Fish_Book', 'Assets/Game%20Scene/PG_Fish_Book.png');
     this.load.image('PG_Shopping_Cart', 'Assets/Game%20Scene/PG_Shopping_Cart.png');
+
+    this.load.image('Char_throw', 'Assets/Game%20Scene/Char_throw.png');
+    this.load.image('Char_throw2', 'Assets/Game%20Scene/Char_throw2.png');
+    this.load.image('Char_idle1', 'Assets/Game%20Scene/Char_idle1.png');
+    this.load.image('Char_idle2', 'Assets/Game%20Scene/Char_idle2.png');
+    this.load.image('Select_1', 'Assets/Game%20Scene/Select_1.png');
+    this.load.image('Select_2', 'Assets/Game%20Scene/Select_2.png');
   }
 
   create() {
@@ -49,7 +56,7 @@ class MainMenu extends Phaser.Scene {
     this.anims.create({
       key: 'bubbleFloat',
       frames: correctFrameOrder.map(i => ({ key: 'Bubble_Sheet', frame: i })),
-      frameRate: 5,
+      frameRate: 3,
       repeat: -1
     });
     this.bubble = this.add.sprite(960, 540, 'Bubble_Sheet').play('bubbleFloat').setDepth(-2);
@@ -144,45 +151,66 @@ class NextScene extends Phaser.Scene {
   }
 
   create() {
-  const cx = this.cameras.main.centerX;
-  const cy = this.cameras.main.centerY;
+    const cx = this.cameras.main.centerX;
+    const cy = this.cameras.main.centerY;
 
-  // Layered Background Setup
-  this.add.image(cx, cy, 'BG1').setDisplaySize(this.scale.width, this.scale.height).setDepth(1); // Sky
-  tthis.sun = this.add.image(cx + 400, cy - 300, 'BG4').setScale(0.8).setDepth(4); // Moved sun to upper left
-  this.tweens.add({
-  targets: this.sun,
-  alpha: { from: 1, to: 0.7 },
-  duration: 2000,
-  yoyo: true,
-  repeat: -1,
-  ease: 'Sine.easeInOut'
-});
-  this.clouds = this.add.image(cx, cy - 100, 'BG5').setDepth(5); // Clouds - lowered
-  this.trees = this.add.image(cx, cy, 'BG2').setDepth(2); // Trees (swaying)
-  this.add.image(cx, cy, 'BG3').setDepth(3); // Terrain
-  this.foilage = this.add.image(cx, cy, 'BG6').setDepth(6); // Foreground bushes (swaying)
-  this.add.image(cx, cy, 'BG7').setDepth(7); // Pond
-  this.add.image(cx, cy, 'BG8').setDepth(8); // Bench & Sign
+    this.add.image(cx, cy, 'BG1').setDisplaySize(this.scale.width, this.scale.height).setDepth(1);
+    this.sun = this.add.image(cx + 250, cy - 300, 'BG4').setScale(0.8).setDepth(4);
+    this.tweens.add({ targets: this.sun, alpha: { from: 1, to: 0.7 }, duration: 2000, yoyo: true, repeat: -1 });
 
-  // Interactive Icons (resized + spaced)
- // Interactive Icons (resized + spaced)
-const book = this.add.image(0, 0, 'PG_Fish_Book').setOrigin(1, 1).setScale(0.5).setInteractive().setDepth(10);
-const cart = this.add.image(0, 0, 'PG_Shopping_Cart').setOrigin(1, 1).setScale(0.5).setInteractive().setDepth(10);
+    this.clouds = this.add.image(cx, cy - 100, 'BG5').setDepth(5);
+    this.trees = this.add.image(cx, cy, 'BG2').setDepth(2);
+    this.add.image(cx, cy, 'BG3').setDepth(3);
+    this.foilage = this.add.image(cx, cy, 'BG6').setDepth(6);
+    this.add.image(cx, cy, 'BG7').setDepth(7);
+    this.add.image(cx, cy, 'BG8').setDepth(8);
 
-cart.setPosition(this.cameras.main.width - 40, this.cameras.main.height - 40);
-book.setPosition(cart.x - cart.displayWidth - 20, this.cameras.main.height - 40);
+    const book = this.add.image(0, 0, 'PG_Fish_Book').setOrigin(1, 1).setScale(0.5).setInteractive().setDepth(10);
+    const cart = this.add.image(0, 0, 'PG_Shopping_Cart').setOrigin(1, 1).setScale(0.5).setInteractive().setDepth(10);
+    cart.setPosition(this.cameras.main.width - 40, this.cameras.main.height - 40);
+    book.setPosition(cart.x - cart.displayWidth - 20, this.cameras.main.height - 40);
 
-[book, cart].forEach(icon => {
-  icon.on('pointerdown', () => icon.setTint(0xcccccc));
-  icon.on('pointerup', () => icon.clearTint());
-});
-}
+    [book, cart].forEach(icon => {
+      icon.on('pointerdown', () => icon.setTint(0xcccccc));
+      icon.on('pointerup', () => icon.clearTint());
+    });
+
+    // Character and cursor animation logic
+    this.char = this.add.image(cx, cy + 100, 'Char_throw').setDepth(9);
+    this.cursor = this.add.image(cx + 140, cy + 160, 'Select_1').setDepth(10);
+    this.cursorFrames = ['Select_1', 'Select_2'];
+    this.cursorFrameIndex = 0;
+    this.cursorTimer = this.time.addEvent({
+      delay: 500,
+      callback: () => {
+        this.cursorFrameIndex = (this.cursorFrameIndex + 1) % this.cursorFrames.length;
+        this.cursor.setTexture(this.cursorFrames[this.cursorFrameIndex]);
+      },
+      loop: true
+    });
+
+    this.input.once('pointerdown', () => {
+      this.cursor.destroy();
+      this.char.setTexture('Char_throw2');
+      this.time.delayedCall(500, () => {
+        this.idleState = 0;
+        this.char.setTexture('Char_idle1');
+        this.time.addEvent({
+          delay: 800,
+          callback: () => {
+            this.idleState = 1 - this.idleState;
+            this.char.setTexture(this.idleState === 0 ? 'Char_idle1' : 'Char_idle2');
+          },
+          loop: true
+        });
+      });
+    });
+  }
 
   update(_, delta) {
     this.swayTime = (this.swayTime || 0) + delta * 0.001;
     this.trees.x = this.cameras.main.centerX + Math.sin(this.swayTime) * 5;
-    this.foilage.x = this.cameras.main.centerX + Math.sin(this.swayTime + 3) * 5;
+    this.foilage.x = this.cameras.main.centerX + Math.sin(this.swayTime + 1) * 5;
     this.clouds.x += 0.8;
     if (this.clouds.x > this.cameras.main.width + 200) this.clouds.x = -200;
   }
@@ -192,7 +220,7 @@ const config = {
   type: Phaser.AUTO,
   width: 1920,
   height: 1080,
-  backgroundColor: '#000022',
+  backgroundColor: '#000000',
   scene: [MainMenu, NextScene],
   scale: {
     mode: Phaser.Scale.FIT,
