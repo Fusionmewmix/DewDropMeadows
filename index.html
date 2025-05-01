@@ -27,6 +27,7 @@ class MainMenu extends Phaser.Scene {
     this.load.image('Sound_Toggle', 'Assets/Main%20Menu/Sound_Toggle.png');
     this.load.image('Settings_Close', 'Assets/Main%20Menu/Settings_Close.png');
     this.load.audio('Water_Sound', 'Assets/Main%20Menu/Water_Sound.mp3');
+    this.load.audio('Outdoors_Sound', 'Assets/Game%20Scene/Outdoors_Sound.mp3');
     this.load.spritesheet('Bubble_Sheet', 'Assets/Main%20Menu/Bubble_Sheet.png', {
       frameWidth: 1920,
       frameHeight: 1080
@@ -83,8 +84,21 @@ class MainMenu extends Phaser.Scene {
     startButton.on('pointerdown', () => startButton.setTint(0xcccccc));
     startButton.on('pointerup', () => {
       startButton.clearTint();
+
+      this.cameras.main.pan(960, 0, 1000, 'Power2');
+      this.tweens.add({
+        targets: [startButton, quitButton, settingsButton],
+        y: '+=400',
+        duration: 600,
+        ease: 'Back.easeIn'
+      });
+
+      this.cameras.main.fadeOut(1000, 255, 255, 255);
       this.music.stop();
-      this.scene.start('NextScene');
+
+      this.time.delayedCall(1000, () => {
+        this.scene.start('NextScene');
+      });
     });
 
     quitButton.on('pointerover', () => quitButton.setScale(1.05));
@@ -97,7 +111,7 @@ class MainMenu extends Phaser.Scene {
     settingsButton.on('pointerdown', () => settingsButton.setTint(0xcccccc));
     settingsButton.on('pointerup', () => {
       settingsButton.clearTint();
-      this.showSettings();
+      this.showSettings(this.music);
     });
 
     const vignette = this.add.graphics().setDepth(0);
@@ -106,14 +120,16 @@ class MainMenu extends Phaser.Scene {
     this.tweens.add({ targets: vignette, alpha: { from: 0.2, to: 0.4 }, duration: 4000, yoyo: true, repeat: -1 });
   }
 
-  showSettings() {
+  showSettings(audioTarget) {
     const bg = this.add.image(960, 540, 'UI_Short').setDepth(10);
     const bar = this.add.image(960, 550, 'Sound_Bar').setDepth(11);
     const toggle = this.add.image(1200, 550, 'Sound_Toggle').setInteractive().setDepth(12);
     const close = this.add.image(960, 670, 'Settings_Close').setInteractive().setDepth(12).setScale(0.5);
-    const text = this.add.text(960, 600, '100%', { fontSize: '32px', color: '#000' }).setOrigin(0.5).setDepth(12);
+    const text = this.add.text(960, 600, '50%', { fontSize: '32px', color: '#000' }).setOrigin(0.5).setDepth(12);
 
+    toggle.x = 960 + (480 * 0.5);
     let isDragging = false;
+
     toggle.on('pointerdown', () => isDragging = true);
     this.input.on('pointerup', () => isDragging = false);
     this.input.on('pointermove', (pointer) => {
@@ -123,7 +139,7 @@ class MainMenu extends Phaser.Scene {
       toggle.x = Phaser.Math.Clamp(pointer.x, minX, maxX);
       const percent = Math.round(((toggle.x - minX) / (maxX - minX)) * 100);
       text.setText(`${percent}%`);
-      this.music.setVolume(percent / 100);
+      if (audioTarget) audioTarget.setVolume(percent / 100);
     });
 
     close.on('pointerup', () => {
@@ -157,13 +173,7 @@ class NextScene extends Phaser.Scene {
 
     this.add.image(cx, cy, 'BG1').setDisplaySize(this.scale.width, this.scale.height).setDepth(1);
     this.sun = this.add.image(cx + 0, cy + 0, 'BG4').setScale(0.8).setDepth(4);
-    this.tweens.add({
-      targets: this.sun,
-      alpha: { from: 1, to: 0.7 },
-      duration: 2000,
-      yoyo: true,
-      repeat: -1
-    });
+    this.tweens.add({ targets: this.sun, alpha: { from: 1, to: 0.7 }, duration: 2000, yoyo: true, repeat: -1 });
 
     this.clouds = this.add.image(cx, cy - 100, 'BG5').setDepth(5);
     this.trees = this.add.image(cx, cy, 'BG2').setDepth(2);
@@ -172,109 +182,46 @@ class NextScene extends Phaser.Scene {
     this.add.image(cx, cy, 'BG7').setDepth(7);
     this.add.image(cx, cy, 'BG8').setDepth(8);
 
-    // Character on bench
-    const charX = 420;  // adjust to sit naturally on bench
-    const charY = cy + 60;  // lowered slightly to align body with seat
-    this.char = this.add.image(cx + 0, cy + 0, 'Char_throw').setDepth(9).setScale(1);
+    this.outdoorSound = this.sound.add('Outdoors_Sound', { loop: true, volume: 0 });
+    this.outdoorSound.play();
+    this.tweens.add({ targets: this.outdoorSound, volume: 0.5, duration: 2000 });
 
-    // Cursor effect: reverse cycling
-    this.cursor = this.add.image(580, 790, 'Select_2')  // Adjusted to hover above bobber
+    const gear = this.add.image(40, this.cameras.main.height - 40, 'Settings_Button')
+      .setOrigin(0, 1)
       .setScale(0.5)
-      .setDepth(10);
+      .setDepth(10)
+      .setInteractive();
 
-    this.cursorFrames = ['Select_2', 'Select_1'];
-    this.cursorFrameIndex = 0;
-    this.cursorTimer = this.time.addEvent({
-      delay: 500,
-      callback: () => {
-        this.cursorFrameIndex = (this.cursorFrameIndex + 1) % this.cursorFrames.length;
-        this.cursor.setTexture(this.cursorFrames[this.cursorFrameIndex]);
-      },
-      loop: true
-    });
-
-    // Book + cart
-    const book = this.add.image(0, 0, 'PG_Fish_Book')
-      .setOrigin(1, 1)
-      .setScale(0.5)
-      .setInteractive()
-      .setDepth(10);
-
-    const cart = this.add.image(0, 0, 'PG_Shopping_Cart')
-      .setOrigin(1, 1)
-      .setScale(0.5)
-      .setInteractive()
-      .setDepth(10);
-
-    cart.setPosition(this.cameras.main.width - 40, this.cameras.main.height - 40);
-    book.setPosition(cart.x - cart.displayWidth - 20, this.cameras.main.height - 40);
-
-    [book, cart].forEach(icon => {
-      icon.on('pointerdown', () => icon.setTint(0xcccccc));
-      icon.on('pointerup', () => icon.clearTint());
-    });
-
-    // Interaction: casting → idle
-    this.input.once('pointerdown', () => {
-  if (this.cursor) {
-    this.cursorTimer.remove();
-    this.cursor.destroy();
-    this.cursor = null;
+    gear.on('pointerdown', () => this.showSettings(this.outdoorSound));
   }
 
-  if (this.char) {
-    this.char.setTexture('Char_throw2');
-  }
+  showSettings(audioTarget) {
+    const bg = this.add.image(960, 540, 'UI_Short').setDepth(10);
+    const bar = this.add.image(960, 550, 'Sound_Bar').setDepth(11);
+    const toggle = this.add.image(1200, 550, 'Sound_Toggle').setInteractive().setDepth(12);
+    const close = this.add.image(960, 670, 'Settings_Close').setInteractive().setDepth(12).setScale(0.5);
+    const text = this.add.text(960, 600, '50%', { fontSize: '32px', color: '#000' }).setOrigin(0.5).setDepth(12);
 
-  // Start idle loop after delay
-  this.time.delayedCall(300, () => {
-    if (!this.char) return;
+    toggle.x = 960 + (480 * 0.5);
+    let isDragging = false;
 
-    this.idleState = 0;
-    this.char.setTexture('Char_idle1');
-
-    // Begin idle animation cycle
-    this.idleTimer = this.time.addEvent({
-      delay: 600,
-      callback: () => {
-        if (!this.char) return;
-        this.idleState = 1 - this.idleState;
-        const next = this.idleState === 0 ? 'Char_idle1' : 'Char_idle2';
-        this.char.setTexture(next);
-      },
-      loop: true
+    toggle.on('pointerdown', () => isDragging = true);
+    this.input.on('pointerup', () => isDragging = false);
+    this.input.on('pointermove', (pointer) => {
+      if (!isDragging) return;
+      const minX = 720;
+      const maxX = 1200;
+      toggle.x = Phaser.Math.Clamp(pointer.x, minX, maxX);
+      const percent = Math.round(((toggle.x - minX) / (maxX - minX)) * 100);
+      text.setText(`${percent}%`);
+      if (audioTarget) audioTarget.setVolume(percent / 100);
     });
-  });
-});
-  }
 
-  update(_, delta) {
-    this.swayTime = (this.swayTime || 0) + delta * 0.001;
-    this.trees.x = this.cameras.main.centerX + Math.sin(this.swayTime) * 5;
-    this.foilage.x = this.cameras.main.centerX + Math.sin(this.swayTime + 1) * 5;
-    this.clouds.x += 0.8;
-    if (this.clouds.x > this.cameras.main.width + 200) {
-      this.clouds.x = -200;
-    }
+    close.on('pointerup', () => {
+      bg.destroy(); bar.destroy(); toggle.destroy(); close.destroy(); text.destroy();
+    });
   }
 }
-
-const config = {
-  type: Phaser.AUTO,
-  width: 1920,
-  height: 1080,
-  backgroundColor: '#000000',
-  scene: [MainMenu, NextScene],
-  scale: {
-    mode: Phaser.Scale.FIT,
-    autoCenter: Phaser.Scale.CENTER_BOTH
-  },
-  audio: {
-    disableWebAudio: false
-  }
-};
-
-new Phaser.Game(config);
 </script>
 </body>
 </html>
