@@ -156,7 +156,7 @@ class NextScene extends Phaser.Scene {
     const cy = this.cameras.main.centerY;
 
     this.add.image(cx, cy, 'BG1').setDisplaySize(this.scale.width, this.scale.height).setDepth(1);
-    this.sun = this.add.image(cx + 400, cy - 200, 'BG4').setScale(0.8).setDepth(4);
+    this.sun = this.add.image(cx + 0, cy + 0, 'BG4').setScale(0.8).setDepth(4);
     this.tweens.add({
       targets: this.sun,
       alpha: { from: 1, to: 0.7 },
@@ -173,9 +173,9 @@ class NextScene extends Phaser.Scene {
     this.add.image(cx, cy, 'BG8').setDepth(8);
 
     // Character on bench
-    this.char = this.add.image(430, 710, 'Char_throw')  // Adjusted to match reference
-      .setScale(1.15)
-      .setDepth(9);
+    const charX = 420;  // adjust to sit naturally on bench
+    const charY = cy + 60;  // lowered slightly to align body with seat
+    this.char = this.add.image(cx + 0, cy + 0, 'Char_throw').setDepth(9).setScale(1);
 
     // Cursor effect: reverse cycling
     this.cursor = this.add.image(580, 790, 'Select_2')  // Adjusted to hover above bobber
